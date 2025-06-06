@@ -36,7 +36,7 @@ const Layout = ({ children }) => {
         <div className="wallet-info"> {/* 이 부분은 지갑 연결 UI로 유지하거나 사용자 정보와 통합 */}
           {isAuthenticated ? (
             <>
-              <span>{user?.username || '사용자'}님</span> {/* user 객체에 username 있다고 가정 */}
+              <span>{user?.nickname || '사용자'}님</span> {/* user 객체에 username 있다고 가정 */}
               <button onClick={logout} style={{ marginLeft: '10px' }}>로그아웃</button>
             </>
           ) : (
