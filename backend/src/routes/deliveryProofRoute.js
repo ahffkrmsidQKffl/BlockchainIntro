@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const deliveryProofController = require('../controllers/deliveryProofController');
 const { authenticateToken } = require('../middlewares/auth');
-const upload = require('../middlewares/upload'); // 이미지 업로드용 multer 미들웨어
+const upload = require('../utils/upload');
 
 /**
  * @swagger
