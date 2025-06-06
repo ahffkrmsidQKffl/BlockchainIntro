@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import './AuthPage.css'; // LoginPage와 공통으로 사용할 CSS
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({ username: '', password: '', email: '' }); // 필요에 따라 필드 추가
+  const [formData, setFormData] = useState({ nickname: '', password: '', email: '' }); // 필요에 따라 필드 추가
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const RegisterPage = () => {
     setLoading(true);
     try {
       // API 명세에는 email이 없지만, 일반적인 회원가입 폼이라 가정
-      await register({ username: formData.username, password: formData.password, email: formData.email });
+      await register({ nickname: formData.nickname, password: formData.password, email: formData.email });
       alert('회원가입 성공! 로그인 페이지로 이동합니다.');
       navigate('/login');
     } catch (err) {
@@ -36,12 +36,12 @@ const RegisterPage = () => {
       <form onSubmit={handleSubmit} className="auth-form">
         {error && <p className="error-message">{error}</p>}
         <div>
-          <label htmlFor="username">사용자명</label>
-          <input type="text" name="username" id="username" value={formData.username} onChange={handleChange} required />
+          <label htmlFor="nickname">닉네임</label>
+          <input type="text" name="nickname" id="nickname" value={formData.nickname} onChange={handleChange} required />
         </div>
         <div>
-          <label htmlFor="email">이메일 (선택)</label>
-          <input type="email" name="email" id="email" value={formData.email} onChange={handleChange} />
+          <label htmlFor="email">이메일</label>
+          <input type="email" name="email" id="email" value={formData.email} onChange={handleChange} required />
         </div>
         <div>
           <label htmlFor="password">비밀번호</label>

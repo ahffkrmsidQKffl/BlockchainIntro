@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import './AuthPage.css'; // RegisterPage와 공통으로 사용할 CSS
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -36,8 +36,8 @@ const LoginPage = () => {
       <form onSubmit={handleSubmit} className="auth-form">
         {error && <p className="error-message">{error}</p>}
         <div>
-          <label htmlFor="username">사용자명</label>
-          <input type="text" name="username" id="username" value={formData.username} onChange={handleChange} required />
+          <label htmlFor="email">이메일</label>
+          <input type="text" name="email" id="email" value={formData.email} onChange={handleChange} required />
         </div>
         <div>
           <label htmlFor="password">비밀번호</label>
