@@ -1,0 +1,30 @@
+/* src/index.css 또는 App.css 최상단 */
+html, body {
+  width: 100%;
+  height: 100%; /* 전체 높이를 사용하도록 설정 (필요에 따라) */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* 모든 요소에 box-sizing 적용 */
+}
+
+*, *::before, *::after {
+  box-sizing: inherit; /* 부모로부터 box-sizing 상속 */
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8f9fa; /* 페이지 배경색 */
+  color: #212529;
+  line-height: 1.6; /* 기본 줄 간격 향상 */
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

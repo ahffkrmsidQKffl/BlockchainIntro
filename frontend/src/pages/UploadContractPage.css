@@ -1,0 +1,95 @@
+.upload-contract-container {
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: 2rem auto; /* 페이지 중앙 정렬 및 상하 마진 */
+}
+
+.upload-contract-container h2 {
+  text-align: center;
+  color: #343a40;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
+.upload-contract-container .wallet-prompt {
+  color: #dc3545; /* 빨간색 경고 */
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.upload-contract-form h3 {
+  color: #495057;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.nft-item-card {
+  border: 1px solid #e0e0e0;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 6px;
+  background-color: #fdfdfd;
+}
+
+.nft-item-card h4 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #007bff;
+}
+
+.nft-item-card label {
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+  display: block; /* 레이블과 인풋이 수직으로 정렬되도록 */
+}
+
+.nft-item-card input[type="text"],
+.nft-item-card select {
+  width: 100%; /* 인풋 너비 확장 */
+  margin-bottom: 1rem; /* 인풋 간 간격 */
+}
+
+.nft-item-card .remove-item-button,
+.add-item-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+.add-item-button {
+  background-color: #28a745; /* 초록색 */
+  margin-top: 0.5rem; /* 품목 추가 버튼 위 간격 */
+}
+
+.nft-item-card .remove-item-button:hover {
+  background-color: #c82333;
+}
+.add-item-button:hover {
+  background-color: #218838;
+}
+
+
+.price-section label input[type="number"] {
+    width: auto; /* 가격 필드는 자동으로 너비 조절 */
+    min-width: 150px;
+}
+
+.submit-button-container {
+  text-align: center; /* 등록 버튼 중앙 정렬 */
+  margin-top: 2.5rem;
+}
+
+.submit-button-container .button-primary {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+}

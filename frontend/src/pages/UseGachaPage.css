@@ -1,0 +1,41 @@
+.use-gacha-container h2 {
+  text-align: center;
+  color: #343a40;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
+.filters-container {
+  display: flex;
+  gap: 1rem; /* 필터 간 간격 */
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  flex-wrap: wrap; /* 화면 작아지면 줄바꿈 */
+  align-items: center;
+}
+
+.filters-container input[type="number"],
+.filters-container select {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.contracts-grid {
+  display: grid;
+  /* 카드가 최소 320px, 공간이 남으면 여러 컬럼, 반응형으로 컬럼 수 조절 */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+  gap: 1.5rem; /* 카드 간 간격 */
+}
+
+.loading-message,
+.no-contracts-message {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #6c757d;
+  padding: 2rem;
+}

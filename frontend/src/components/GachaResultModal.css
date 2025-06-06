@@ -1,0 +1,68 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* 어둡게 처리 */
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem 2.5rem; /* 패딩 증가 */
+  border-radius: 12px; /* 모서리 더 둥글게 */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  text-align: center;
+  min-width: 350px; /* 최소 너비 증가 */
+  max-width: 500px; /* 최대 너비 */
+  position: relative; /* 내부 요소 배치 용이 */
+}
+
+.modal-content h2 {
+  font-size: 2rem; /* 제목 크기 증가 */
+  color: #28a745; /* 초록색 계열로 축하 느낌 */
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.modal-content p {
+  font-size: 1.1rem; /* 본문 폰트 크기 */
+  margin-bottom: 1.5rem;
+  color: #495057;
+}
+.modal-content p strong {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.modal-nft-image {
+  max-width: 250px; /* 이미지 크기 증가 */
+  max-height: 250px;
+  margin: 1.5rem auto;
+  display: block;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background-color: #f8f9fa; /* 이미지 배경 */
+}
+
+.modal-close-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem; /* 버튼 크기 증가 */
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.modal-close-button:hover {
+  background-color: #0056b3;
+}

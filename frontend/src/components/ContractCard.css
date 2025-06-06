@@ -1,0 +1,97 @@
+.contract-card {
+  background-color: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.contract-card:hover {
+  transform: translateY(-5px); /* 호버 시 카드 살짝 위로 이동 */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.contract-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: #007bff; /* 카드 제목 색상 */
+  font-size: 1.4rem;
+}
+
+.contract-card p {
+  margin-bottom: 0.5rem;
+  color: #495057; /* 본문 텍스트 색상 */
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.contract-card p strong {
+  color: #343a40; /* 강조 텍스트 색상 */
+}
+
+.contract-card-actions {
+  margin-top: auto; /* 버튼들을 카드 하단으로 밀착 */
+  padding-top: 1rem; /* 정보와 버튼 사이 간격 */
+  border-top: 1px solid #f1f3f5; /* 구분선 */
+  display: flex;
+  gap: 0.75rem; /* 버튼 간 간격 */
+}
+
+.contract-card-actions button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.details-button {
+  background-color: #6c757d; /* 회색 계열 */
+  color: white;
+  border: none;
+}
+.details-button:hover {
+  background-color: #5a6268;
+}
+
+.attempt-button {
+  background-color: #28a745; /* 초록색 계열 */
+  color: white;
+  border: none;
+}
+.attempt-button:hover {
+  background-color: #218838;
+}
+.attempt-button:disabled {
+  background-color: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+
+.contract-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #e0e0e0; /* 상세 정보 구분선 */
+}
+
+.contract-details h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+.contract-details ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+
+.contract-details li {
+  padding: 0.3rem 0;
+  font-size: 0.9rem;
+  color: #666;
+}
