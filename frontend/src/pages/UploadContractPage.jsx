@@ -32,58 +32,51 @@ const UploadContractPage = () => {
   };
 
   const handleRegisterSingleItem = async (itemIndex) => {
-    const itemToRegister = nftItems[itemIndex];
-    if (!itemToRegister.name || !itemToRegister.imageFile) {
-      alert('아이템 이름과 이미지를 모두 선택해주세요.');
-      return;
+  const itemToRegister = nftItems[itemIndex];
+  if (!itemToRegister.name || !itemToRegister.imageFile) {
+    alert('아이템 이름과 이미지를 모두 선택해주세요.');
+    return;
+  }
+  setLoading(true);
+  setItemRegistrationMessage(`'${itemToRegister.name}' 등록 처리 중...`);
+  try {
+    // 1. 이미지 업로드
+    const formData = new FormData();
+    formData.append('image', itemToRegister.imageFile);
+    const imageUploadResponse = await uploadImage(formData);
+
+    console.log('이미지 업로드 서버 응답:', imageUploadResponse.data);
+
+    // --- 여기가 핵심 수정 부분: 'imageUrl' -> 'image_url' ---
+    // 백엔드가 보내준 'image_url' 키를 정확하게 사용합니다.
+    const imageUrlFromServer = imageUploadResponse.data.image_url; 
+
+    if (!imageUrlFromServer) {
+      throw new Error("이미지 URL을 받지 못했습니다. 개발자 도구의 콘솔에서 서버 응답을 확인하세요.");
     }
-    setLoading(true);
-    setItemRegistrationMessage(`'${itemToRegister.name}' 등록 처리 중...`);
-    try {
-      // 1. 이미지 업로드
-      const formData = new FormData();
-      formData.append('image', itemToRegister.imageFile);
-      const imageUploadResponse = await uploadImage(formData);
+    
+    const updatedItems = [...nftItems];
+    updatedItems[itemIndex].imageUrl = imageUrlFromServer;
+    updatedItems[itemIndex].imageFile = null;
+    setNftItems(updatedItems);
 
-      // --- 1. 디버깅을 위해 서버 응답을 콘솔에 출력 ---
-      console.log('이미지 업로드 서버 응답:', imageUploadResponse.data);
+    // 2. 애장품 정보 등록 (이미지 URL 포함)
+    const itemData = {
+      name: itemToRegister.name,
+      description: itemToRegister.description,
+      imageUrl: imageUrlFromServer,
+      rarity: itemToRegister.rarity,
+    };
+    const registerResponse = await registerItem(itemData);
+    setItemRegistrationMessage(`'${itemToRegister.name}' 아이템 등록 성공! (서버 응답: ${JSON.stringify(registerResponse.data)})`);
 
-      // --- 2. 안정적인 URL 처리를 위해 여러 키 값을 확인 ---
-      // 백엔드가 imageUrl, url, path 등 다른 이름으로 보낼 가능성을 대비합니다.
-      const imageUrlFromServer = imageUploadResponse.data.imageUrl || imageUploadResponse.data.url || imageUploadResponse.data.path;
-
-      if (!imageUrlFromServer) {
-        // --- 3. 에러 메시지를 더 구체적으로 변경 ---
-        throw new Error("이미지 URL을 받지 못했습니다. 개발자 도구의 콘솔에서 서버 응답을 확인하세요.");
-      }
-      
-      const updatedItems = [...nftItems];
-      updatedItems[itemIndex].imageUrl = imageUrlFromServer;
-      updatedItems[itemIndex].imageFile = null; // 성공했으니 메모리에서 파일 제거
-      setNftItems(updatedItems);
-
-      // 2. 애장품 정보 등록
-      const itemData = {
-        name: itemToRegister.name,
-        description: itemToRegister.description,
-        imageUrl: imageUrlFromServer,
-        rarity: itemToRegister.rarity,
-        // --- 4. user.id 사용 주석 처리 ---
-        // 현재 로그인 API는 user 객체를 반환하지 않으므로 user는 null입니다.
-        // 백엔드에서 JWT 토큰을 통해 사용자를 식별하므로 이 정보는 보낼 필요가 없습니다.
-        // ownerId: user.id 
-      };
-
-      const registerResponse = await registerItem(itemData);
-      setItemRegistrationMessage(`'${itemToRegister.name}' 아이템 등록 성공! (서버 응답: ${JSON.stringify(registerResponse.data)})`);
-      
-    } catch (error) {
-      console.error("아이템 등록 실패:", error);
-      setItemRegistrationMessage(`아이템 등록 실패: ${error.response?.data?.message || error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error("아이템 등록 실패:", error);
+    setItemRegistrationMessage(`아이템 등록 실패: ${error.response?.data?.message || error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
   
   const handleSubmitContract = (event) => {
     event.preventDefault();
