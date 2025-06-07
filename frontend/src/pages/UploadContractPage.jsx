@@ -32,24 +32,19 @@ const UploadContractPage = () => {
   };
 
   const handleRegisterSingleItem = async (itemIndex) => {
-  const itemToRegister = nftItems[itemIndex];
-  if (!itemToRegister.name || !itemToRegister.imageFile) {
-    alert('아이템 이름과 이미지를 모두 선택해주세요.');
-    return;
-  }
-  setLoading(true);
-  setItemRegistrationMessage(`'${itemToRegister.name}' 등록 처리 중...`);
-  try {
-    // 1. 이미지 업로드
-    const formData = new FormData();
-    formData.append('image', itemToRegister.imageFile);
-    const imageUploadResponse = await uploadImage(formData);
-
-    console.log('이미지 업로드 서버 응답:', imageUploadResponse.data);
-
-    // --- 여기가 핵심 수정 부분: 'imageUrl' -> 'image_url' ---
-    // 백엔드가 보내준 'image_url' 키를 정확하게 사용합니다.
-    const imageUrlFromServer = imageUploadResponse.data.image_url; 
+    const itemToRegister = nftItems[itemIndex];
+    if (!itemToRegister.name || !itemToRegister.imageFile) {
+      alert('아이템 이름과 이미지를 모두 선택해주세요.');
+      return;
+    }
+    setLoading(true);
+    setItemRegistrationMessage('');
+    try {
+      // 1. 이미지 업로드
+      const formData = new FormData();
+      formData.append('image', itemToRegister.imageFile); // 'image'는 백엔드에서 받는 필드명
+      const imageUploadResponse = await uploadImage(formData);
+      const imageUrlFromServer = imageUploadResponse.data.image_Url; // API 응답 형식에 따라 imageUrl 필드 확인
 
     if (!imageUrlFromServer) {
       throw new Error("이미지 URL을 받지 못했습니다. 개발자 도구의 콘솔에서 서버 응답을 확인하세요.");
@@ -60,15 +55,17 @@ const UploadContractPage = () => {
     updatedItems[itemIndex].imageFile = null;
     setNftItems(updatedItems);
 
-    // 2. 애장품 정보 등록 (이미지 URL 포함)
-    const itemData = {
-      name: itemToRegister.name,
-      description: itemToRegister.description,
-      imageUrl: imageUrlFromServer,
-      rarity: itemToRegister.rarity,
-    };
-    const registerResponse = await registerItem(itemData);
-    setItemRegistrationMessage(`'${itemToRegister.name}' 아이템 등록 성공! (서버 응답: ${JSON.stringify(registerResponse.data)})`);
+      // 2. 애장품 정보 등록 (이미지 URL 포함)
+      const itemData = {
+        name: itemToRegister.name,
+        description: itemToRegister.description,
+        image_Url: imageUrlFromServer,
+        rarity: itemToRegister.rarity,
+        // ownerId: user.id // 필요하다면 사용자 ID도 함께 전송
+      };
+      const registerResponse = await registerItem(itemData);
+      setItemRegistrationMessage(`'${itemToRegister.name}' 아이템 등록 성공! (ID: ${registerResponse.data.itemId})`); // API 응답 형식에 따라
+      // 등록 성공 후, 해당 아이템은 목록에서 비활성화하거나 UI 변경 가능
 
   } catch (error) {
     console.error("아이템 등록 실패:", error);
