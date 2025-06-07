@@ -44,7 +44,7 @@ const UploadContractPage = () => {
       const formData = new FormData();
       formData.append('image', itemToRegister.imageFile); // 'image'는 백엔드에서 받는 필드명
       const imageUploadResponse = await uploadImage(formData);
-      const imageUrlFromServer = imageUploadResponse.data.image_Url; // API 응답 형식에 따라 imageUrl 필드 확인
+      const imageUrlFromServer = imageUploadResponse.data.image_url; // API 응답 형식에 따라 imageUrl 필드 확인
 
     if (!imageUrlFromServer) {
       throw new Error("이미지 URL을 받지 못했습니다. 개발자 도구의 콘솔에서 서버 응답을 확인하세요.");
@@ -59,7 +59,7 @@ const UploadContractPage = () => {
       const itemData = {
         name: itemToRegister.name,
         description: itemToRegister.description,
-        image_Url: imageUrlFromServer,
+        image_url: imageUrlFromServer,
         rarity: itemToRegister.rarity,
         // ownerId: user.id // 필요하다면 사용자 ID도 함께 전송
       };

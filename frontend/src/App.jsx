@@ -1,3 +1,6 @@
+// 파일 경로: src/App.jsx
+// 수정할 부분 없음
+
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';

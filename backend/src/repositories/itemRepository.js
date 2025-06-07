@@ -1,31 +1,26 @@
 const db = require('../config/db');
+exports.createItem = async ({ name, description, image_url, ownerId }) => {
+  try {
+  const sql =
+      'INSERT INTO physical_items (name, description, image_url, user_id) VALUES (?, ?, ?, ?)';
 
-exports.createItem = async ({ name, description, image_url, available }) => {
-  const [result] = await db.query(
-    'INSERT INTO physical_items (name, description, image_url, available) VALUES (?, ?, ?, ?)',
-    [name, description, image_url, available]
-  );
+    const [result] = await db.query(sql, [
+      name,
+      description,
+      image_url,
+      ownerId, 
+    ]);
 
-  return {
-    id: result.insertId,
-    name,
-    description,
-    image_url,
-    available,
-  };
-};
-exports.createItem = async ({ name, description, image_url, available, user_id }) => {
-    const [result] = await db.query(
-      'INSERT INTO physical_items (name, description, image_url, available, user_id) VALUES (?, ?, ?, ?, ?)',
-      [name, description, image_url, available, user_id]
-    );
-  
+
     return {
       id: result.insertId,
       name,
       description,
       image_url,
-      available,
-      user_id
+      user_id: ownerId,
     };
+  } catch (error) {
+    console.error('DB에서 아이템 생성 중 에러 발생:', error);
+    throw error;
+  }
 };
