@@ -1,11 +1,11 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  // 이제 모든 요청은 '/api'로 시작하게 됩니다. (예: /api/users/login)
+  // 모든 요청은 '/api'로 시작합니다. Vite 프록시 설정과 함께 동작합니다.
   baseURL: '/api', 
 });
 
-// 이 함수는 토큰이 있을 때 모든 요청 헤더에 자동으로 토큰을 추가해줍니다.
+// 모든 요청 헤더에 JWT 토큰을 추가하는 함수
 export const setAuthToken = (token) => {
   if (token) {
     apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -16,7 +16,7 @@ export const setAuthToken = (token) => {
   }
 };
 
-// 로그아웃 시 헤더에서 토큰을 명시적으로 제거합니다.
+// 로그아웃 시 헤더에서 토큰을 명시적으로 제거하는 함수
 export const removeAuthToken = () => {
     delete apiClient.defaults.headers.common['Authorization'];
     console.log('Auth token explicitly removed from apiClient by removeAuthToken');
@@ -29,11 +29,9 @@ export const removeAuthToken = () => {
 export const registerUser = (userData) => apiClient.post('/users/register', userData);
 export const loginUser = (credentials) => apiClient.post('/users/login', credentials);
 
-// 사용자 정보 가져오기 (인증 필요)
-// 참고: 이 엔드포인트는 명세서에 명시되지 않았지만,
-// JWT 인증 시스템에서 사용자 정보를 가져오는 표준적인 방법이므로 그대로 둡니다.
-// 백엔드에 /api/users/me 엔드포인트가 구현되어 있어야 합니다.
-export const getMe = () => apiClient.get('/users/me');
+// --- 1. getMe 함수 제거 ---
+// 원인: 현재 API 명세서에 '/api/users/me'가 없어 404 에러를 유발하므로 제거합니다.
+// export const getMe = () => apiClient.get('/users/me');
 
 // Image Upload
 export const uploadImage = (formData) => apiClient.post('/upload', formData, {
@@ -41,6 +39,13 @@ export const uploadImage = (formData) => apiClient.post('/upload', formData, {
 });
 
 // Items (애장품)
+
+// --- 2. 전체 아이템 목록을 가져오는 함수 추가 ---
+// 용도: '가챠 사용하기' 페이지에서 사용될 모든 아이템 목록을 가져옵니다.
+// 백엔드에 GET /api/items 엔드포인트가 구현되어야 합니다.
+export const getAllItems = () => apiClient.get('/items');
+
+// 내가 등록한 아이템 목록 조회 (마이페이지 등에서 사용)
 export const registerItem = (itemData) => apiClient.post('/items', itemData);
 export const getMyRegisteredItems = () => apiClient.get('/items/my');
 

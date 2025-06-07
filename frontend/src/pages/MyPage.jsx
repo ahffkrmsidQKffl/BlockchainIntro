@@ -1,61 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext'; // useAuth 훅 가져오기
 import { getMyRegisteredItems, getMyGachaHistory, uploadDeliveryProof } from '../services/api';
 // import './MyPage.css'; // 필요시 CSS 생성
 
 const MyPage = () => {
-  const { user } = useAuth();
+  // user 객체 대신 isAuthenticated (토큰 존재 여부)를 주된 기준으로 삼습니다.
+  const { isAuthenticated } = useAuth(); 
   const [myItems, setMyItems] = useState([]);
   const [gachaHistory, setGachaHistory] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [proofFile, setProofFile] = useState(null);
-  const [uploadingProofFor, setUploadingProofFor] = useState(null); // 어떤 gacha history item에 대한 것인지
+  const [uploadingProofFor, setUploadingProofFor] = useState(null);
 
   useEffect(() => {
-    const fetchMyData = async () => {
-      if (user) {
-        setLoadingItems(true);
-        try {
-          const itemsRes = await getMyRegisteredItems();
-          setMyItems(itemsRes.data.items || []);
-        } catch (error) {
-          console.error("내 등록 아이템 조회 실패:", error);
-        }
+  const fetchMyData = async () => {
+    if (isAuthenticated) {
+      // 1. 내 등록 아이템 조회
+      setLoadingItems(true);
+      try {
+        const itemsRes = await getMyRegisteredItems();
+        setMyItems(itemsRes.data.items || []);
+      } catch (error) {
+        console.error("내 등록 아이템 조회 실패:", error);
+      } finally {
         setLoadingItems(false);
+      }
 
-        setLoadingHistory(true);
-        try {
-          const historyRes = await getMyGachaHistory();
-          setGachaHistory(historyRes.data.history || []); // API 응답 형식에 따라
-        } catch (error) {
-          console.error("가챠 이력 조회 실패:", error);
-        }
+      // 2. 가챠 이력 조회
+      setLoadingHistory(true);
+      try {
+        const historyRes = await getMyGachaHistory();
+        setGachaHistory(historyRes.data.history || []);
+      } catch (error) {
+        // 여기가 현재 에러가 잡히는 부분입니다.
+        console.error("가챠 이력 조회 실패:", error); 
+      } finally {
         setLoadingHistory(false);
       }
-    };
-    fetchMyData();
-  }, [user]);
+    }
+  };
+  fetchMyData();
+}, [isAuthenticated]);
 
   const handleProofFileChange = (e, historyId) => {
     setProofFile(e.target.files[0]);
     setUploadingProofFor(historyId); // 현재 작업 중인 이력 ID 설정
   };
 
-  const handleUploadProof = async (historyId) => { // historyId는 gachaHistory의 각 항목 ID
+  const handleUploadProof = async (historyId) => {
     if (!proofFile || uploadingProofFor !== historyId) {
       alert("먼저 수령 인증 사진을 선택해주세요.");
       return;
     }
     const formData = new FormData();
     formData.append('proofImage', proofFile); // 백엔드에서 받는 필드명
-    formData.append('gachaHistoryId', historyId); // 어떤 이력에 대한 증명인지 전달
+    formData.append('gachaHistoryId', historyId);
 
     try {
-      setLoadingHistory(true); // 또는 별도의 로딩 상태
+      setLoadingHistory(true);
       await uploadDeliveryProof(formData);
       alert('수령 인증 사진이 업로드되었습니다.');
-      // 성공 시 UI 업데이트 (예: 해당 이력에 "인증 완료" 표시)
       const updatedHistory = gachaHistory.map(h => 
         h.id === historyId ? { ...h, proofUploaded: true } : h
       );
@@ -69,13 +74,22 @@ const MyPage = () => {
     }
   };
 
-  if (!user) return <p>로그인이 필요합니다.</p>;
+  // App.jsx의 ProtectedRoute가 이미 이 페이지를 보호하고 있지만,
+  // 만약을 대비해 한번 더 확인하는 것이 좋습니다.
+  if (!isAuthenticated) {
+    return <p>마이페이지를 보려면 로그인이 필요합니다.</p>;
+  }
 
   return (
     <div className="my-page-container" style={{padding:'1rem'}}>
       <h2>마이페이지</h2>
-      <p><strong>사용자명:</strong> {user.username}</p>
-      {/* <p><strong>이메일:</strong> {user.email}</p> */}
+      {/* 
+        - 현재 로그인 API 응답에 사용자 정보(user 객체)가 없어 이름을 표시할 수 없습니다.
+        - 추후 백엔드에서 로그인 시 사용자 정보를 함께 보내주거나,
+        - 사용자 정보를 가져오는 별도의 API(예: GET /api/users/me)가 생긴다면
+        - 이 부분의 주석을 해제하고 사용할 수 있습니다.
+        <p><strong>사용자님, 환영합니다.</strong></p> 
+      */}
 
       <section style={{ marginTop: '30px' }}>
         <h3>내가 등록한 애장품 목록</h3>
@@ -100,7 +114,7 @@ const MyPage = () => {
                     <td>{hist.shippingStatus || '확인 중'}</td>
                     <td>
                       {hist.proofUploaded ? '인증 완료' : (
-                        hist.needsShipping && !hist.isDelivered ? // 배송 필요하고 아직 미배송 시
+                        hist.needsShipping && !hist.isDelivered ?
                         <>
                           <input type="file" onChange={(e) => handleProofFileChange(e, hist.id)} accept="image/*" style={{fontSize:'0.8em'}} />
                           {uploadingProofFor === hist.id && proofFile && 

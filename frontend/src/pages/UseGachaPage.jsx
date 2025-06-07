@@ -16,31 +16,20 @@ const UseGachaPage = ({ onGachaAttempt }) => {
       setLoading(true);
       setError('');
       try {
-        // TODO: 실제 가챠 목록을 가져오는 API 호출
-        // 예시: const response = await apiClient.get('/gachas');
-        //       setGachaItems(response.data);
-        // 임시로 getMyRegisteredItems 사용 (각 아이템이 하나의 가챠라고 가정)
-        const response = await getMyRegisteredItems(); // 인증 필요 API
-        setGachaItems(response.data.items || []); // API 응답 형식에 따라
+        // --- 여기가 핵심 수정 부분 ---
+        // 임시 함수 대신, 새로 만든 전체 목록 API를 호출합니다.
+        const response = await getAllGachaItems(); 
+        setGachaItems(response.data.items || []);
       } catch (err) {
         setError(err.response?.data?.message || '가챠 목록을 불러오는데 실패했습니다.');
-        if (err.response?.status === 401) { // 인증 실패 시
-            setError('가챠 목록을 보려면 로그인이 필요합니다.');
-        }
       } finally {
         setLoading(false);
       }
     };
-    // if (isAuthenticated) { // 목록 조회에 인증이 필요하다면
-      fetchGachaItems();
-    // } else {
-    //   setLoading(false);
-    //   setError("가챠 목록을 보려면 로그인이 필요합니다.");
-    // }
-  }, [isAuthenticated]); // 로그인 상태 변경 시 다시 로드
-  
-  // ... (필터/정렬 로직은 filteredContracts 대신 gachaItems를 사용하도록 수정)
+    
+    fetchGachaItems();
 
+  }, []);
   const handleAttemptGacha = async (gachaItem) => { // gachaItem은 뽑을 대상 (예: { id, name, price })
     if (!isAuthenticated) {
       alert("뽑기를 시도하려면 로그인해주세요.");
