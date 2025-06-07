@@ -1,51 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { apiClient, setAuthToken, removeAuthToken } from '../services/api'; // 실제 API 사용 시 주석 해제
-
-// --- 임시 API 클라이언트 및 함수 (실제 API 사용 시 삭제 또는 주석) ---
-// const fakeApiClient = {
-//   post: async (url, data) => {
-//     console.log(`[FAKE API POST] URL: ${url}, Data:`, data);
-//     if (url === '/users/login') {
-//       if (data.username === 'testuser' && data.password === 'password') {
-//         return Promise.resolve({ data: { token: 'fake-jwt-token', user: { id: '1', username: 'testuser', email: 'test@example.com' } } });
-//       } else {
-//         return Promise.reject({ response: { data: { message: '아이디 또는 비밀번호가 일치하지 않습니다 (임시 로그인)' } } });
-//       }
-//     }
-//     if (url === '/users/register') {
-//         return Promise.resolve({ data: { message: '임시 회원가입 성공' } });
-//     }
-//     return Promise.reject({ response: { data: { message: '알 수 없는 임시 API 요청' } } });
-//   },
-//   get: async (url) => {
-//     console.log(`[FAKE API GET] URL: ${url}`);
-//     if (url === '/users/me') {
-//         // 실제로는 토큰을 검증하고 사용자 정보를 반환해야 함
-//         // 여기서는 로그인 시 설정된 사용자 정보를 반환한다고 가정
-//         const storedToken = localStorage.getItem('jwtToken');
-//         if (storedToken === 'fake-jwt-token') {
-//             return Promise.resolve({ data: { user: { id: '1', username: 'testuser', email: 'test@example.com' } } });
-//         } else {
-//             return Promise.reject({ response: { data: { message: '유효하지 않은 토큰 (임시)'}}});
-//         }
-//     }
-//     return Promise.reject({ response: { data: { message: '알 수 없는 임시 API GET 요청' } } });
-//   }
-// };
-// const apiClient = fakeApiClient; // 실제 API 대신 임시 클라이언트 사용
-
-// const setAuthToken = (token) => {
-//   console.log('[FAKE setAuthToken] Token:', token);
-//   // 실제 API 클라이언트가 있다면 여기에 설정 로직 추가
-//   // 예: apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-// };
-// const removeAuthToken = () => {
-//   console.log('[FAKE removeAuthToken]');
-//   // 실제 API 클라이언트가 있다면 여기에 제거 로직 추가
-//   // 예: delete apiClient.defaults.headers.common['Authorization'];
-// };
-// --- 임시 API 클라이언트 및 함수 종료 ---
-
+import { setAuthToken, removeAuthToken, loginUser, registerUser, getMe } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -58,80 +12,71 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('jwtToken');
     if (storedToken) {
       setToken(storedToken);
-      setAuthToken(storedToken);
+      setAuthToken(storedToken); // API 클라이언트 기본 헤더에 토큰 설정
 
-      // 임시: 토큰이 있으면 '/users/me'를 호출하여 사용자 정보를 가져온다고 가정
-      apiClient.get('/users/me')
+      getMe() // 서버에 사용자 정보 요청 (토큰 기반)
         .then(response => {
-          setUser(response.data.user);
+          // 서버 응답의 user 객체에는 email이 포함되어야 하며, nickname 등 다른 정보도 있을 수 있음
+          setUser(response.data.user || response.data); // 서버 응답 구조에 따라 조정
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error("Failed to fetch user with token:", error);
           logout(); // 토큰은 있지만 사용자 정보를 못 가져오면 로그아웃
         })
         .finally(() => setLoading(false));
     } else {
+      setAuthToken(null); // 초기 로드 시 토큰이 없으면 헤더에서 제거
       setLoading(false);
     }
   }, []);
 
   const login = async (credentials) => {
-    // --- 실제 API 호출 로직 (주석 처리) ---
-    const response = await apiClient.post('/users/login', credentials);
-    if (response.data.token) {
-      const newToken = response.data.token;
-      localStorage.setItem('jwtToken', newToken);
-      setToken(newToken);
-      setAuthToken(newToken);
-      const userResponse = await apiClient.get('/users/me');
-      setUser(userResponse.data.user);
-      return userResponse.data.user;
+    // credentials는 이제 { email: '...', password: '...' } 형태를 기대 (LoginPage.jsx 수정에 따름)
+    try {
+      const response = await loginUser(credentials); // api.js의 loginUser 함수 사용
+      
+      if (response.data.token) {
+        const newToken = response.data.token;
+        localStorage.setItem('jwtToken', newToken);
+        setToken(newToken);
+        setAuthToken(newToken); // API 클라이언트에 새 토큰 설정
+
+        // 로그인 응답에 사용자 정보가 포함되어 있을 경우
+        if (response.data.user) {
+          // 서버 응답의 user 객체에는 email이 포함되어야 하며, nickname 등 다른 정보도 있을 수 있음
+          setUser(response.data.user);
+          return response.data.user;
+        } else {
+          // 로그인 응답에 사용자 정보가 없다면 /users/me를 호출하여 가져옴
+          const userResponse = await getMe();
+          // 서버 응답의 user 객체에는 email이 포함되어야 하며, nickname 등 다른 정보도 있을 수 있음
+          setUser(userResponse.data.user || userResponse.data);
+          return userResponse.data.user || userResponse.data;
+        }
+      } else {
+        throw new Error(response.data.message || "로그인 응답에 토큰이 없습니다.");
+      }
+    } catch (error) {
+      console.error("Login failed:", error.response?.data?.message || error.message);
+      throw error; // LoginPage에서 에러를 처리하도록 다시 throw
     }
-    throw new Error(response.data.message || "로그인 실패");
-    
-
-    // --- 임시 로컬 로그인 로직 ---
-    // console.log("임시 로그인 시도:", credentials);
-    // if (credentials.username === 'testuser' && credentials.password === 'password') {
-    //   const fakeToken = 'fake-jwt-token';
-    //   const fakeUser = {
-    //     id: '1',
-    //     username: 'testuser',
-    //     email: 'test@example.com',
-    //     // 필요한 다른 사용자 정보 추가
-    //   };
-
-    //   localStorage.setItem('jwtToken', fakeToken);
-    //   setToken(fakeToken);
-    //   setUser(fakeUser);
-    //   setAuthToken(fakeToken); // 가짜 setAuthToken 호출 (실제 API 클라이언트 연동 시 필요)
-    //   console.log("임시 로그인 성공:", fakeUser);
-    //   return fakeUser; // 성공 시 사용자 객체 반환
-    // } else {
-    //   console.error("임시 로그인 실패: 아이디 또는 비밀번호 불일치");
-    //   throw new Error("아이디 또는 비밀번호가 일치하지 않습니다 (임시 로그인).");
-    // }
-    // --- 임시 로컬 로그인 로직 종료 ---
   };
 
   const register = async (userData) => {
-    // --- 실제 API 호출 로직 (주석 처리) ---
-    const response = await apiClient.post('/users/register', userData);
-    return response.data;
-    
-
-    // --- 임시 로컬 회원가입 로직 ---
-    // console.log("임시 회원가입 시도:", userData);
-    // // 여기서는 별다른 처리 없이 성공 메시지만 반환 (실제 사용자 생성 안 함)
-    // return { message: "임시 회원가입 성공! (실제 데이터 저장 안됨)" };
-    // --- 임시 로컬 회원가입 로직 종료 ---
+    // userData에는 email, password가 필수로 포함되고, nickname 등 추가 정보가 있을 수 있음
+    // (API 명세에 따라 필요한 필드 확인 필요)
+    const response = await registerUser(userData);
+    return response.data; 
   };
 
   const logout = () => {
     localStorage.removeItem('jwtToken');
     setToken(null);
     setUser(null);
-    removeAuthToken(); // 가짜 removeAuthToken 호출
+    removeAuthToken(); // API 클라이언트에서 토큰 제거
     console.log("로그아웃 완료 (토큰 및 사용자 정보 제거)");
+    // 필요하다면 로그인 페이지로 리디렉션
+    // window.location.href = '/login'; 
   };
 
   return (
