@@ -1,97 +1,74 @@
+/* --- 수정된 components/ContractCard.css --- */
+
+/* 카드 전체의 기본 스타일 */
 .contract-card {
   background-color: #ffffff;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e0e0e0;
+  border-radius: 12px; /* 좀 더 부드러운 느낌을 위해 radius 값 조정 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column; /* 아이템을 세로로 쌓습니다 (이미지 위, 컨텐츠 아래) */
+  overflow: hidden; /* border-radius가 이미지에 적용되도록 */
+}
+
+.contract-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* --- ▼▼▼ 추가된 스타일 ▼▼▼ --- */
+/* 카드 상단의 이미지 스타일 */
+.card-image {
+  width: 100%;
+  height: 220px; /* 카드의 이미지 높이를 고정 */
+  object-fit: cover; /* 이미지 비율을 유지하면서 꽉 채웁니다 */
+  background-color: #f8f9fa; /* 이미지가 없을 때 배경색 */
+}
+
+/* 텍스트 컨텐츠를 감싸는 영역 */
+.card-content {
+  padding: 1rem 1.5rem; /* 좌우 패딩을 좀 더 줍니다 */
+  flex-grow: 1; /* 카드의 남은 공간을 모두 차지하도록 */
   display: flex;
   flex-direction: column;
 }
 
-.contract-card:hover {
-  transform: translateY(-5px); /* 호버 시 카드 살짝 위로 이동 */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-}
 
-.contract-card h3 {
-  margin-top: 0;
-  margin-bottom: 0.75rem;
-  color: #007bff; /* 카드 제목 색상 */
-  font-size: 1.4rem;
-}
-
-.contract-card p {
-  margin-bottom: 0.5rem;
-  color: #495057; /* 본문 텍스트 색상 */
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-.contract-card p strong {
-  color: #343a40; /* 강조 텍스트 색상 */
-}
-
-.contract-card-actions {
-  margin-top: auto; /* 버튼들을 카드 하단으로 밀착 */
-  padding-top: 1rem; /* 정보와 버튼 사이 간격 */
-  border-top: 1px solid #f1f3f5; /* 구분선 */
-  display: flex;
-  gap: 0.75rem; /* 버튼 간 간격 */
-}
-
-.contract-card-actions button {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.details-button {
-  background-color: #6c757d; /* 회색 계열 */
-  color: white;
-  border: none;
-}
-.details-button:hover {
-  background-color: #5a6268;
-}
-
-.attempt-button {
-  background-color: #28a745; /* 초록색 계열 */
-  color: white;
-  border: none;
-}
-.attempt-button:hover {
-  background-color: #218838;
-}
-.attempt-button:disabled {
-  background-color: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
-}
-
-
-.contract-details {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px dashed #e0e0e0; /* 상세 정보 구분선 */
-}
-
-.contract-details h4 {
+/* --- ▼▼▼ 수정된 스타일 ▼▼▼ --- */
+/* 카드 제목 스타일 (클래스 이름으로 명확하게 지정) */
+.card-title {
   margin-top: 0;
   margin-bottom: 0.5rem;
-  color: #555;
+  color: #212529; /* 더 진한 제목 색상 */
+  font-size: 1.25rem;
+  font-weight: 600; /* 제목을 좀 더 두껍게 */
 }
 
-.contract-details ul {
-  list-style-type: none;
-  padding-left: 0;
+/* 카드 설명 스타일 (클래스 이름으로 명확하게 지정) */
+.card-description {
   margin-bottom: 0;
+  color: #495057;
+  font-size: 0.9rem;
+  line-height: 1.6; /* 줄 간격을 넓혀 가독성 향상 */
+  flex-grow: 1; /* 설명이 영역을 채우도록 */
 }
 
-.contract-details li {
-  padding: 0.3rem 0;
-  font-size: 0.9rem;
-  color: #666;
+/* 에러 발생 시 카드의 스타일 */
+.contract-card-error {
+  border: 1px dashed #dc3545;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  color: #dc3545;
 }
+
+
+/* --- ▼▼▼ 제거된 스타일 ▼▼▼ --- */
+/* 
+  .contract-card-actions, 
+  .details-button, 
+  .attempt-button, 
+  .contract-details 등은 
+  새로운 컴포넌트 구조에서 사용되지 않으므로 모두 제거되었습니다. 
+*/

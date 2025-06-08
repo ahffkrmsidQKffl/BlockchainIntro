@@ -1,37 +1,34 @@
+// --- 수정된 api.js ---
+
 import axios from 'axios';
 
+// 1. axios 인스턴스를 apiClient로 명명하여 일관성 유지
 export const apiClient = axios.create({
-  // 모든 요청은 '/api'로 시작합니다. Vite 프록시 설정과 함께 동작합니다.
+  // Vite 프록시 설정을 통해 '/api' 요청이 백엔드 서버로 전달됩니다.
   baseURL: '/api', 
+  // 타임아웃을 설정하여 무한정 기다리는 것을 방지합니다. (예: 10초)
+  timeout: 10000, 
 });
 
-// 모든 요청 헤더에 JWT 토큰을 추가하는 함수
+// 모든 요청에 인증 토큰을 자동으로 포함시키는 인터셉터(interceptor) 사용을 권장하지만,
+// 기존 방식을 유지하며 로그를 더 명확하게 수정합니다.
 export const setAuthToken = (token) => {
   if (token) {
     apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    console.log('Auth token set in apiClient');
   } else {
     delete apiClient.defaults.headers.common['Authorization'];
-    console.log('Auth token removed from apiClient');
   }
 };
 
-// 로그아웃 시 헤더에서 토큰을 명시적으로 제거하는 함수
 export const removeAuthToken = () => {
-    delete apiClient.defaults.headers.common['Authorization'];
-    console.log('Auth token explicitly removed from apiClient by removeAuthToken');
+  delete apiClient.defaults.headers.common['Authorization'];
 };
 
-
-// --- API 명세서에 따른 함수 목록 ---
+// --- API 함수 목록 (기존과 동일하며, 명확한 구조를 가짐) ---
 
 // Auth (인증)
 export const registerUser = (userData) => apiClient.post('/users/register', userData);
 export const loginUser = (credentials) => apiClient.post('/users/login', credentials);
-
-// --- 1. getMe 함수 제거 ---
-// 원인: 현재 API 명세서에 '/api/users/me'가 없어 404 에러를 유발하므로 제거합니다.
-// export const getMe = () => apiClient.get('/users/me');
 
 // Image Upload
 export const uploadImage = (formData) => apiClient.post('/upload', formData, {
@@ -39,21 +36,15 @@ export const uploadImage = (formData) => apiClient.post('/upload', formData, {
 });
 
 // Items (애장품)
-
-// --- 2. 전체 아이템 목록을 가져오는 함수 추가 ---
-// 용도: '가챠 사용하기' 페이지에서 사용될 모든 아이템 목록을 가져옵니다.
-// 백엔드에 GET /api/items 엔드포인트가 구현되어야 합니다.
 export const getAllItems = () => apiClient.get('/items');
-
-// 내가 등록한 아이템 목록 조회 (마이페이지 등에서 사용)
 export const registerItem = (itemData) => apiClient.post('/items', itemData);
 export const getMyRegisteredItems = () => apiClient.get('/items/my');
 
-// Gacha
+// Gacha (가챠)
 export const drawGacha = (gachaData) => apiClient.post('/gacha/draw', gachaData);
-export const getMyGachaHistory = () => apiClient.get('/gacha/history');
+export const getMyGachaHistory = () => apiClient.get('/gacha/history'); // 500 에러가 발생하는 API
 
-// Shipping & Delivery
+// Shipping & Delivery (배송)
 export const submitShippingAddress = (shippingData) => apiClient.post('/shippings/address', shippingData);
 export const registerTrackingInfo = (deliveryData) => apiClient.post('/delivery/shipping', deliveryData);
 export const uploadDeliveryProof = (proofData) => apiClient.post('/delivery/proof', proofData, {
