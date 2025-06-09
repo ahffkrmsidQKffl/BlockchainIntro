@@ -12,6 +12,7 @@ const gachaRoute = require('./src/routes/gachaRoute');
 const deliveryProofRoute = require('./src/routes/deliveryProofRoute');
 const shippingRoute = require('./src/routes/shippingRoute');
 const itemRoute = require('./src/routes/itemRoute'); 
+const nftRoute = require('./src/routes/nftRoute');
 
 dotenv.config();
 const app = express();
@@ -58,6 +59,8 @@ app.use('/api/gacha', gachaRoute);
 app.use('/api/delivery', deliveryProofRoute);
 app.use('/api/shippings', shippingRoute);
 app.use('/api/items', itemRoute); 
+app.use('/api/nft', nftRoute);
+
 
 // 기본 라우트
 app.get('/', (req, res) => {

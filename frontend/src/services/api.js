@@ -43,6 +43,9 @@ export const getMyRegisteredItems = () => apiClient.get('/items/my');
 // Gacha (가챠)
 export const drawGacha = (gachaData) => apiClient.post('/gacha/draw', gachaData);
 export const getMyGachaHistory = () => apiClient.get('/gacha/history'); // 500 에러가 발생하는 API
+export const getAllGachaContracts = () => apiClient.get('/gacha/contracts');
+export const sendGachaResultToBackend = (contractAddress, tokenId) =>
+  apiClient.post('/gacha/result', { contractAddress, tokenId });
 
 // Shipping & Delivery (배송)
 export const submitShippingAddress = (shippingData) => apiClient.post('/shippings/address', shippingData);
@@ -50,3 +53,7 @@ export const registerTrackingInfo = (deliveryData) => apiClient.post('/delivery/
 export const uploadDeliveryProof = (proofData) => apiClient.post('/delivery/proof', proofData, {
     headers: { 'Content-Type': 'multipart/form-data' }
 });
+
+//NFT 
+export const getAllContractsWithNFTs = () => 
+  apiClient.get('/nft/contracts-with-nfts').then(res => res.data);

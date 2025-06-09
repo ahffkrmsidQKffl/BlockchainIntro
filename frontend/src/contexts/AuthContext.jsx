@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-
+import { jwtDecode } from 'jwt-decode';
 import { setAuthToken, removeAuthToken, loginUser, registerUser } from '../services/api';
 
 
@@ -15,43 +15,38 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('jwtToken');
     if (storedToken) {
       setAuthToken(storedToken);
-      setLoading(false);
+      try {
+        const payload = jwtDecode(storedToken);              
+        setUser({ id: payload.id, nickname: payload.nickname, email: payload.email });
+      } catch {                                         
+        console.warn('Invalid JWT – could not decode');
+        localStorage.removeItem('jwtToken');
+      }
     } else {
       setAuthToken(null);
-      setLoading(false);
     }
+    setLoading(false);
   }, []);
 
   const login = async (credentials) => {
     try {
-      const response = await loginUser(credentials);
-      console.log('서버 응답 데이터:', response.data); 
+      const { data } = await loginUser(credentials);    // axios 응답
+      if (!data.token) throw new Error('로그인 응답에 토큰이 없습니다.');
 
-      // --- 여기가 핵심 수정 부분 ---
-      // 서버 응답에 user 객체는 없지만, token은 있으므로 token만 확인합니다.
-      if (response.data.token) {
-        const newToken = response.data.token;
+      localStorage.setItem('jwtToken', data.token);
+      setToken(data.token);
+      setAuthToken(data.token);
 
-        localStorage.setItem('jwtToken', newToken);
-        setToken(newToken);
-        setAuthToken(newToken);
+      // 🔥 토큰 디코드 → user 세팅
+      const payload = jwtDecode(data.token);
+      setUser({ id: payload.id, nickname: payload.nickname, email: payload.email });
 
-        // ※ 중요: 서버가 사용자 정보를 주지 않으므로, user 상태는 여기서 설정할 수 없습니다.
-        // 이로 인해 로그인 직후 헤더에 사용자 이름이 표시되지 않을 수 있습니다.
-        // setUser(null); // 또는 그대로 둠
-
-        // token만 반환합니다. user 데이터가 없기 때문입니다.
-        return { token: newToken }; 
-      } else {
-        // 응답에 토큰조차 없는 경우
-        throw new Error("로그인 응답에 토큰이 없습니다.");
-      }
-    } catch (error) {
-      console.error("Login failed:", error.response?.data?.message || error.message);
-      throw error;
+      return { token: data.token };                     // 필요하면 호출부에서 이용
+    } catch (err) {
+      console.error('Login failed:', err.response?.data?.message || err.message);
+      throw err;
     }
   };
-
 
   const register = async (userData) => {
     const response = await registerUser(userData);

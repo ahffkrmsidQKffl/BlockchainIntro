@@ -3,6 +3,36 @@ const router = express.Router();
 const gachaController = require('../controllers/gachaController');
 const { authenticateToken } = require('../middlewares/auth');
 
+router.post('/result', authenticateToken, gachaController.processDrawResult);
+
+router.get('/contracts', gachaController.getAllContracts);
+
+/**
+ * @swagger
+ * /api/gacha/create:
+ *   post:
+ *     summary: 가챠 컨트랙트 생성
+ *     tags: [Gacha]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               itemIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 example: [1, 2, 3]
+ *     responses:
+ *       201:
+ *         description: 생성된 컨트랙트 주소 반환
+ */
+router.post('/create', authenticateToken, gachaController.createGachaContract);
+
 /**
  * @swagger
  * /api/gacha/draw:

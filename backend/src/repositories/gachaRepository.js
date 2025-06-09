@@ -1,5 +1,36 @@
 const db = require('../config/db');
 
+exports.getItemsByIds = async (itemIds) => {
+  if (!itemIds || itemIds.length === 0) return [];
+
+  const placeholders = itemIds.map(() => '?').join(',');
+  const [rows] = await db.query(
+    `SELECT id, name, description, image_url FROM physical_items WHERE id IN (${placeholders})`,
+    itemIds
+  );
+  return rows;
+};
+
+exports.getAllContractsWithItems = async () => {
+  const sql = `
+    SELECT 
+      gc.id AS contractId,
+      gc.contract_address,
+      gc.created_at,
+      pi.id AS itemId,
+      pi.name AS itemName,
+      pi.description,
+      pi.image_url
+    FROM gacha_contracts gc
+    JOIN gacha_contract_items gci ON gc.contract_address = gci.contract_address
+    JOIN physical_items pi ON gci.item_id = pi.id
+    WHERE gc.contract_address != '0x466567571F033Da2f81747e6a05105A39b938Fda'
+    ORDER BY gc.created_at DESC
+  `;
+  const [rows] = await db.query(sql);
+  return rows;
+};
+
 exports.getAvailableItems = async () => {
   const [rows] = await db.query(
     'SELECT * FROM physical_items WHERE available = 1'
@@ -24,6 +55,14 @@ exports.markItemUnavailable = async (itemId) => {
   );
 };
 
+exports.saveGachaHistory = async ({ userId, itemId, tokenId, contractAddress }) => {
+  await db.query(
+    `INSERT INTO gacha_histories (user_id, item_id, token_id, contract_address)
+     VALUES (?, ?, ?, ?)`,
+    [userId, itemId, tokenId, contractAddress]
+  );
+};
+
 // 'Unknown column' 에러가 발생한 함수
 exports.getGachaHistoryByUser = async (userId) => {
     // 1. 문제가 발생한 SQL 쿼리 수정
@@ -45,4 +84,20 @@ exports.getGachaHistoryByUser = async (userId) => {
 
     const [rows] = await db.query(sql, [userId]);
     return rows;
+};
+
+exports.saveGachaContract = async ({ userId, contractAddress, itemIds }) => {
+  // 1. contracts 테이블에 저장
+  await db.query(
+    'INSERT INTO gacha_contracts (user_id, contract_address, created_at) VALUES (?, ?, NOW())',
+    [userId, contractAddress]
+  );
+
+  // 2. 연결된 itemIds도 저장 (선택)
+  for (let itemId of itemIds) {
+    await db.query(
+      'INSERT INTO gacha_contract_items (contract_address, item_id) VALUES (?, ?)',
+      [contractAddress, itemId]
+    );
+  }
 };
