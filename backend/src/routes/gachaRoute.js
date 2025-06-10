@@ -3,6 +3,8 @@ const router = express.Router();
 const gachaController = require('../controllers/gachaController');
 const { authenticateToken } = require('../middlewares/auth');
 
+router.post('/pick-next', authenticateToken, gachaController.pickNextGachaItem);
+
 router.post('/result', authenticateToken, gachaController.processDrawResult);
 
 router.get('/contracts', gachaController.getAllContracts);

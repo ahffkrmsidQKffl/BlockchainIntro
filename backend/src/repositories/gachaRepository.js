@@ -1,5 +1,43 @@
 const db = require('../config/db');
 
+// 모두 used=1 처리
+exports.markItemsAsUsed = async (contractAddress, itemIds) => {
+  if (itemIds.length === 0) return;
+  const placeholders = itemIds.map(() => '?').join(',');
+  const sql = `
+    UPDATE gacha_contract_items 
+    SET used = 1 
+    WHERE contract_address = ? AND item_id IN (${placeholders})
+  `;
+  await db.query(sql, [contractAddress, ...itemIds]);
+};
+
+// picked만 used=0 처리
+exports.markItemAsUnpicked = async (contractAddress, itemId) => {
+  const sql = `
+    UPDATE gacha_contract_items 
+    SET used = 0 
+    WHERE contract_address = ? AND item_id = ?
+  `;
+  await db.query(sql, [contractAddress, itemId]);
+};
+
+exports.pickNextGachaItem = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { contractAddress } = req.body;
+    if (!contractAddress) throw new Error('contractAddress가 필요합니다.');
+
+    // 서비스 로직 호출
+    const pickedItem = await gachaService.pickNextGachaItem(contractAddress);
+
+    res.status(200).json({ success: true, pickedItem });
+  } catch (err) {
+    console.error('pickNextGachaItem error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 exports.getItemsByIds = async (itemIds) => {
   if (!itemIds || itemIds.length === 0) return [];
 

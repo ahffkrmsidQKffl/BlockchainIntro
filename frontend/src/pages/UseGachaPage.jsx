@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import ContractCard from '../components/ContractCard'; // 가챠 아이템을 표시할 카드 컴포넌트
+import GachaResultModal from '../components/GachaResultModal'; // 결과 화면
 import { useAuth } from '../contexts/AuthContext';
-import { getAllContractsWithNFTs, drawGacha, sendGachaResultToBackend } from '../services/api'; 
+import { getAllContractsWithNFTs, drawGacha, sendGachaResultToBackend, pickNextGachaItem } from '../services/api'; 
 import { ethers } from "ethers";
 import GachaContractArtifact  from "../../../solidity/build/contracts/GachaContract.json";
 import GachaNFTArtifact       from "../../../solidity/build/contracts/GachaNFT.json";
@@ -59,22 +60,23 @@ const UseGachaPage = () => {
       alert("메타마스크가 필요합니다.");
       return;
     }
-
+    setIsDrawing(true);
     try {
+      // 1) 먼저 백엔드에서 “이번에 뽑힐 NFT”를 지정
+      await pickNextGachaItem(contractAddress);  // 새로 만든 API
+
+      // 2) 이제 솔리디티 draw() 실행 (무조건 방금 뽑힌 NFT만 남아 있음)
       await window.ethereum.request({ method: "eth_requestAccounts" });
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(contractAddress, GachaContractArtifact.abi, signer);
 
-      setIsDrawing(true);
       const tx = await contract.draw(); // draw() 실행
       const receipt = await tx.wait();
 
-      // --- NFT 전용 인터페이스로 Transfer 이벤트만 골라 파싱 ---
+      // 3) tokenId 파싱 후, 백엔드에 결과 전송 및 검증
       const nftInterface = new ethers.Interface(GachaNFTArtifact.abi);
-      // 배포할 때 받은 NFT 컨트랙트 주소를 환경변수 등에서 가져오세요.
       const nftAddress   = "0xD647245c2f45b20b98cb39A3e445f6fA90D3A62c"; // ✅ 실제 gachaNFT 배포 주소 입력
-      
       const transferLog = receipt.logs.find(log =>
         log.address.toLowerCase() === nftAddress.toLowerCase()
       );
@@ -106,7 +108,7 @@ const UseGachaPage = () => {
       //   console.warn("사용자가 NFT 추가를 취소했습니다.", e);
       // }
 
-      // 3) 모달에 뽑기 결과 표시
+      // 3) 모달에 뽑기 결과 전달
       setModalResult({
         id: data.result.itemId,
         name: `NFT #${tokenId}`,
@@ -147,15 +149,15 @@ const UseGachaPage = () => {
           </button>
         </div>
       ))}
-      {modalResult && (
-        <YourModalComponent
+      {/* {modalResult && (
+        <GachaResultModal
           title={modalResult.name}
           imageUrl={modalResult.imageUrl}
           onClose={() => setModalResult(null)}
         >
-          {/* 배송 정보 등록 등 추가 UI */}  
-        </YourModalComponent>
-      )}
+        배송 정보 등록 등 추가 UI 
+        </GachaResultModal>
+      )} */}
     </div>
   );
 };

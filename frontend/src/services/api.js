@@ -39,6 +39,7 @@ export const uploadImage = (formData) => apiClient.post('/upload', formData, {
 export const getAllItems = () => apiClient.get('/items');
 export const registerItem = (itemData) => apiClient.post('/items', itemData);
 export const getMyRegisteredItems = () => apiClient.get('/items/my');
+export const getMyGachaContracts = () => apiClient.get('/items/my-gacha-contracts');
 
 // Gacha (가챠)
 export const drawGacha = (gachaData) => apiClient.post('/gacha/draw', gachaData);
@@ -46,6 +47,7 @@ export const getMyGachaHistory = () => apiClient.get('/gacha/history'); // 500 �
 export const getAllGachaContracts = () => apiClient.get('/gacha/contracts');
 export const sendGachaResultToBackend = (contractAddress, tokenId) =>
   apiClient.post('/gacha/result', { contractAddress, tokenId });
+export const pickNextGachaItem = () => apiClient.get('/gacha/pick-next');
 
 // Shipping & Delivery (배송)
 export const submitShippingAddress = (shippingData) => apiClient.post('/shippings/address', shippingData);

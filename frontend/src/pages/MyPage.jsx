@@ -1,9 +1,8 @@
-// --- 수정된 MyPage.jsx ---
-
+import ContractCard from '../components/ContractCard';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 // api.js 파일의 경로는 실제 프로젝트 구조에 맞게 확인해주세요. (예: ../api/api.js 또는 ../services/api.js)
-import { getMyRegisteredItems, getMyGachaHistory, } from '../services/api'; 
+import { getMyGachaContracts, getMyRegisteredItems, getMyGachaHistory, } from '../services/api'; 
 // import './MyPage.css';
 
 const MyPage = () => {
@@ -15,6 +14,7 @@ const MyPage = () => {
   const [loading, setLoading] = useState({ items: false, history: false, proof: false });
   const [error, setError] = useState({ items: null, history: null });
 
+  const [myContracts, setMyContracts] = useState([]);
 
   useEffect(() => {
     const fetchMyData = async () => {
@@ -27,7 +27,8 @@ const MyPage = () => {
           // Promise.allSettled를 사용해 하나가 실패해도 다른 하나는 결과를 받을 수 있도록 함
           const results = await Promise.allSettled([
             getMyRegisteredItems(),
-            getMyGachaHistory()
+            getMyGachaHistory(),
+            getMyGachaContracts()
           ]);
 
           // 3. 내 등록 아이템 결과 처리
@@ -48,6 +49,13 @@ const MyPage = () => {
             // 500 에러의 경우, 백엔드에서 온 에러 메시지를 사용하거나 기본 메시지를 보여줌
             const backendMessage = results[1].reason.response?.data?.message;
             setError(prev => ({ ...prev, history: backendMessage || '가챠 이력을 불러오는 데 실패했습니다.' }));
+          }
+
+          // 5. 내가 만든 컨트랙트 처리
+          if (results[2].status === 'fulfilled') {
+            setMyContracts(results[2].value.data || []);
+          } else {
+            console.error("내 컨트랙트 목록 조회 실패:", results[2].reason);
           }
 
         } catch (generalError) {
@@ -71,13 +79,29 @@ const MyPage = () => {
       <h2>마이페이지</h2>
 
       <section style={{ marginTop: '30px' }}>
-        <h3>내가 등록한 애장품 목록</h3>
+        <h3>내가 만든 가챠 컨트랙트</h3>
         {loading.items && <p>로딩 중...</p>}
         {error.items && <p style={{ color: 'red' }}>{error.items}</p>}
         {!loading.items && !error.items && (
-          myItems.length > 0 ? (
-            <ul>{myItems.map(item => <li key={item.id}>{item.name}</li>)}</ul>
-          ) : <p>아직 등록한 애장품이 없습니다.</p>
+          myContracts.length > 0 ? (
+            myContracts.map(contract => (
+              <div key={contract.contractAddress} className="gacha-contract-box">
+                <h4>📦 컨트랙트 주소: {contract.contractAddress}</h4>
+                <p>생성일: {new Date(contract.createdAt).toLocaleString()}</p>
+
+                <div className="contract-items-grid">
+                  {contract.items.map(item => (
+                    <ContractCard key={item.tokenId} item={{
+                      id: item.id,
+                      name: `NFT #${item.tokenId}`,
+                      image_url: item.image_url,
+                      description: item.description || '설명 없음'
+                    }} />
+                  ))}
+                </div>
+              </div>
+            ))
+          ) : <p>아직 등록한 가챠 컨트랙트가 없습니다.</p>
         )}
       </section>
 
@@ -87,9 +111,16 @@ const MyPage = () => {
         {error.history && <p style={{ color: 'red' }}>{error.history}</p>}
         {!loading.history && !error.history && (
           gachaHistory.length > 0 ? (
-            <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              {/* ... (기존 테이블 구조) ... */}
-            </table>
+            <div className="contract-items-grid">
+              {gachaHistory.map(item => (
+                <ContractCard key={item.itemId} item={{
+                  id: item.itemId,
+                  name: item.itemName,
+                  image_url: item.itemImageUrl,
+                  description: item.description || '설명 없음'
+                }} />
+              ))}
+            </div>
           ) : <p>아직 뽑은 상품 이력이 없습니다.</p>
         )}
       </section>
