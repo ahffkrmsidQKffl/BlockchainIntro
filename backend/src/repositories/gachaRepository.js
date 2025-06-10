@@ -1,5 +1,16 @@
 const db = require('../config/db');
 
+exports.getUnpickedItemsByContract = async (contractAddress) => {
+  const sql = `
+    SELECT pi.*, gci.used, gci.contract_address
+    FROM gacha_contract_items gci
+    JOIN physical_items pi ON gci.item_id = pi.id
+    WHERE gci.contract_address = ? AND gci.used = 0
+  `;
+  const [rows] = await db.query(sql, [contractAddress]);
+  return rows;
+};
+
 // 모두 used=1 처리
 exports.markItemsAsUsed = async (contractAddress, itemIds) => {
   if (itemIds.length === 0) return;
