@@ -31,11 +31,11 @@ exports.getAllContractsWithNFTItems = async () => {
 };
 
 /* 뽑힌 NFT 하나 가져오기 */
-exports.findNFT = async ({ contractAddress, itemId, userId }) => {
+exports.findNFT = async ({ contractAddress, tokenId, userId }) => {
   const [rows] = await db.query(
     `SELECT * FROM nfts
-     WHERE contract_address = ? AND item_id = ? AND user_id = ?`,
-    [contractAddress, itemId, userId]
+     WHERE contract_address = ? AND token_id = ? AND user_id = ?`,
+    [contractAddress, tokenId, userId]
   );
   return rows[0];
 };

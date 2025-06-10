@@ -6,43 +6,6 @@ const Web3 = require('web3').default;
 const GachaContractArtifact = require('../../../solidity/build/contracts/GachaContract.json');
 const GachaNFTArtifact = require('../../../solidity/build/contracts/GachaNFT.json');
 const _ = require('lodash');
-const rarityProbabilityMap = {
-  'super-rare': 0.05,
-  'rare': 0.15,
-  'normal': 0.80,
-};
-
-// 등급별 필터링 함수
-function weightedRandomPick(items) {
-  // 1. 등급별로 그룹화
-  const grouped = {
-    'super-rare': [],
-    'rare': [],
-    'normal': [],
-  };
-
-  for (const item of items) {
-    const rarity = item.rarity || 'normal'; // 기본값 normal
-    if (grouped[rarity]) grouped[rarity].push(item);
-  }
-
-  // 2. 확률 계산 기반 추출
-  const rand = Math.random(); // 0~1 사이
-  let threshold = 0;
-
-  for (const [rarity, prob] of Object.entries(rarityProbabilityMap)) {
-    threshold += prob;
-    if (rand <= threshold && grouped[rarity].length > 0) {
-      // 해당 등급에서 랜덤 선택
-      const pool = grouped[rarity];
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
-  }
-
-  // fallback: 아무거나
-  const flat = [...grouped['normal'], ...grouped['rare'], ...grouped['super-rare']];
-  return flat[Math.floor(Math.random() * flat.length)];
-}
 
 exports.getAllContracts = async () =>{
   const flatData = await gachaRepo.getAllContractsWithItems();
@@ -64,37 +27,6 @@ exports.getAllContracts = async () =>{
   }));
 
   return result;
-};
-
-// 이 함수는 희귀도 기반으로 아이템 1개 선택 후 나머지 used=1 처리
-exports.pickNextGachaItem = async (contractAddress) => {
-  // 1. 아직 뽑히지 않은 아이템 목록 조회
-  const items = await gachaRepo.getUnpickedItemsByContract(contractAddress);
-  if (!items || items.length === 0) throw new Error('뽑을 수 있는 아이템이 없습니다.');
-
-  // 2. 희귀도 기반 가중치 랜덤 추첨 (이미 구현한 weightedRandomPick 함수 활용)
-  const picked = weightedRandomPick(items);
-
-  // 3. 모든 아이템 used=1로 바꾸고, picked 아이템만 used=0으로 유지
-  const allIds = items.map(i => i.id); // physical_items의 id
-  await gachaRepo.markItemsAsUsed(contractAddress, allIds); // 모두 used=1로
-  await gachaRepo.markItemAsUnpicked(contractAddress, picked.id); // picked만 used=0
-
-  // 반환: 뽑힌 아이템 정보
-  return picked;
-};
-
-const drawItemFromContract = async (contractAddress) => {
-  // 1. 아직 뽑히지 않은 아이템 목록 가져오기
-  const items = await gachaRepo.getUnpickedItemsByContract(contractAddress);
-  if (!items || items.length === 0) {
-    throw new Error('모든 아이템이 이미 소진되었습니다.');
-  }
-
-  // 2. 희귀도 기반으로 뽑기
-  const selected = weightedRandomPick(items); // 👈 여기 핵심
-
-  return selected;
 };
 
 exports.createGachaContract = async (userId, itemIds, userWalletAddress) => {
@@ -190,17 +122,9 @@ exports.createGachaContract = async (userId, itemIds, userWalletAddress) => {
 // };
 
 exports.processDrawResult = async ({ userId, contractAddress, tokenId }) => {
-  const selectedItem = await drawItemFromContract(contractAddress);
 
-  // 이후 이 selectedItem을 기반으로 민팅 정보 찾아서 사용
-  const nft = await nftRepo.findNFT({ 
-    contractAddress, 
-    itemId: selectedItem.id, 
-    userId 
-  });
-
-  // // 1. NFT 한 건 찾기
-  // const nft = await nftRepo.findNFT({ contractAddress, tokenId, userId });
+  // 1. NFT 한 건 찾기
+  const nft = await nftRepo.findNFT({ contractAddress, tokenId, userId });
   if (!nft) throw new Error('해당 NFT를 찾을 수 없습니다.');
 
   // 2. 히스토리 저장
