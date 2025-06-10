@@ -84,7 +84,7 @@ function App() {
           <Route path="/mypage" element={
             <ProtectedRoute><MyPage /></ProtectedRoute>
           } />
-          <Route path="/shipping/:itemId" element={ // itemId를 URL 파라미터로 전달
+          <Route path="/shipping/info/:infoId" element={ // itemId를 URL 파라미터로 전달
             <ProtectedRoute><ShippingAddressPage /></ProtectedRoute>
           } />
           {/* 기타 라우트들 */}

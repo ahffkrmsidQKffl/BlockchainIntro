@@ -50,11 +50,19 @@ export const sendGachaResultToBackend = (contractAddress, tokenId) =>
 export const pickNextGachaItem = () => apiClient.get('/gacha/pick-next');
 
 // Shipping & Delivery (배송)
-export const submitShippingAddress = (shippingData) => apiClient.post('/shippings/address', shippingData);
-export const registerTrackingInfo = (deliveryData) => apiClient.post('/delivery/shipping', deliveryData);
-export const uploadDeliveryProof = (proofData) => apiClient.post('/delivery/proof', proofData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-});
+export function printWaybill(waybillNo) { return apiClient.post('/printwbl', { waybillNo }, { responseType:'arraybuffer' }); }
+
+// GET 배송 정보
+export function getShippingInfo(infoId, tokenId) {
+  return apiClient.get(`/shipping/info/${infoId}`, {
+    params: { tokenId }
+  });
+}
+
+// POST 배송 확정
+export function confirmShippingInfo(infoId, data) {
+  return apiClient.post(`/shipping/info/${infoId}/confirm`, data);
+}
 
 //NFT 
 export const getAllContractsWithNFTs = () => 
