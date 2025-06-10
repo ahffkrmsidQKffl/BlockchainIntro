@@ -58,8 +58,8 @@ exports.createGachaContract = async (userId, itemIds, userWalletAddress) => {
 
   for (const item of items) {
     // 3-1) 다음에 발행될 tokenId 예측 (supply + 1)
-    const supply = await GachaNFT.methods.totalSupply().call();
-    const nextTokenId = Number(supply) + 1;
+    const nextTokenIdStr = await GachaNFT.methods.nextTokenId().call();
+    const nextTokenId    = Number(nextTokenIdStr);
 
     // 3-2) 메타데이터 생성 시 external_url 포함
     const rawMeta = {
@@ -69,7 +69,7 @@ exports.createGachaContract = async (userId, itemIds, userWalletAddress) => {
       external_url:`${process.env.FRONTEND_BASE_URL}/access/${nextTokenId}`
     };
     // (uploadMetadata는 IPFS나 여러분 서버에 JSON을 올려주는 유틸)
-    const metadataUrl = await uploadMetadata(rawMeta);
+    const metadataUrl = await generateMetadata(item);
 
     // 3-3) mint 호출
     const tx = await GachaNFT.methods

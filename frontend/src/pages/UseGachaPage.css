@@ -25,10 +25,11 @@
   font-size: 0.95rem;
 }
 
-.contracts-grid {
+.contract-items-grid {
   display: grid;
-  /* 카드가 최소 320px, 공간이 남으면 여러 컬럼, 반응형으로 컬럼 수 조절 */
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+  /* 250px 고정 폭 칼럼 → 카드가 하나만 있어도 가운데 정렬 */
+  grid-template-columns: repeat(auto-fit, 250px);
+  justify-content: center;
   gap: 1.5rem; /* 카드 간 간격 */
 }
 
