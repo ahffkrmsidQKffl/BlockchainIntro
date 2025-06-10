@@ -52,15 +52,29 @@ exports.createGachaContract = async (userId, itemIds, userWalletAddress) => {
 
   const gachaAddr = contract.options.address;   // 주소 확보
 
-  /* ───────── 3. DB에서 품목 정보 조회 + 컨트랙트 주소로 민팅 ───────── */
-  const items          = await gachaRepo.getItemsByIds(itemIds);  // [{ id, image_url }, …]
+  // 3. DB에서 품목 정보 조회 + “토큰 게이팅용 external_url” 박아가며 민팅
+  const items          = await gachaRepo.getItemsByIds(itemIds);
   const mintedTokenIds = [];
 
   for (const item of items) {
-    const metadataUrl = generateMetadata(item);
+    // 3-1) 다음에 발행될 tokenId 예측 (supply + 1)
+    const supply = await GachaNFT.methods.totalSupply().call();
+    const nextTokenId = Number(supply) + 1;
+
+    // 3-2) 메타데이터 생성 시 external_url 포함
+    const rawMeta = {
+      name:        item.name,
+      description: item.description,
+      image:       item.image_url,
+      external_url:`${process.env.FRONTEND_BASE_URL}/access/${nextTokenId}`
+    };
+    // (uploadMetadata는 IPFS나 여러분 서버에 JSON을 올려주는 유틸)
+    const metadataUrl = await uploadMetadata(rawMeta);
+
+    // 3-3) mint 호출
     const tx = await GachaNFT.methods
-                 .mint(gachaAddr, metadataUrl)        // ← 컨트랙트가 owner!
-                 .send({ from: adminAddress, gas: 1_000_000 });
+      .mint(gachaAddr, metadataUrl)
+      .send({ from: adminAddress, gas: 1_000_000 });
 
     const tokenId = Number(tx.events.Transfer.returnValues.tokenId);
     mintedTokenIds.push({ tokenId, item });

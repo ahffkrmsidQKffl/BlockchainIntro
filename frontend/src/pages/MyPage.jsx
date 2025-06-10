@@ -4,17 +4,18 @@ import { useAuth } from '../contexts/AuthContext';
 // api.js 파일의 경로는 실제 프로젝트 구조에 맞게 확인해주세요. (예: ../api/api.js 또는 ../services/api.js)
 import { getMyGachaContracts, getMyRegisteredItems, getMyGachaHistory, } from '../services/api'; 
 // import './MyPage.css';
+import { ethers } from 'ethers';
+import GachaNFTArtifact from '../../../solidity/build/contracts/GachaNFT.json';
+import { Link } from 'react-router-dom';
 
 const MyPage = () => {
   const { isAuthenticated } = useAuth();
   const [myItems, setMyItems] = useState([]);
   const [gachaHistory, setGachaHistory] = useState([]);
-  
-  // 1. 로딩과 에러 상태를 객체로 통합하여 관리
   const [loading, setLoading] = useState({ items: false, history: false, proof: false });
   const [error, setError] = useState({ items: null, history: null });
-
   const [myContracts, setMyContracts] = useState([]);
+  const [myTokenIds, setMyTokenIds]     = useState([]);
 
   useEffect(() => {
     const fetchMyData = async () => {
@@ -70,6 +71,28 @@ const MyPage = () => {
     fetchMyData();
   }, [isAuthenticated]);
 
+  // ② 토큰 게이팅용 useEffect: on-chain으로 내 NFT tokenId 조회
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    (async () => {
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer   = await provider.getSigner();
+        const userAddr  = await signer.getAddress();
+
+        const nftAddress = "0xD647245c2f45b20b98cb39A3e445f6fA90D3A62c";
+        const nft        = new ethers.Contract(nftAddress, GachaNFTArtifact.abi, provider);
+        // Transfer 이벤트 중 to = userAddr 필터
+        const filter = nft.filters.Transfer(null, userAddr);
+        const events = await nft.queryFilter(filter);
+        const tokens = events.map(ev => ev.args.tokenId.toString());
+        setMyTokenIds(tokens);
+      } catch (e) {
+        console.error("토큰 게이팅 조회 실패:", e);
+      }
+    })();
+  }, [isAuthenticated]);
+
   if (!isAuthenticated) {
     return <p>마이페이지를 보려면 로그인이 필요합니다.</p>;
   }
@@ -113,17 +136,54 @@ const MyPage = () => {
           gachaHistory.length > 0 ? (
             <div className="contract-items-grid">
               {gachaHistory.map(item => (
-                <ContractCard key={item.itemId} item={{
-                  id: item.itemId,
-                  name: item.itemName,
-                  image_url: item.itemImageUrl,
-                  description: item.description || '설명 없음'
-                }} />
+                <Link
+                  key={item.tokenId}
+                  to={`/access/${item.tokenId}`}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <ContractCard key={item.itemId} item={{
+                    id: item.itemId,
+                    name: item.itemName,
+                    image_url: item.itemImageUrl,
+                    description: item.description || '설명 없음'
+                  }} />
+                  <div className="history-token-id">
+                    Token ID: <strong>{item.tokenId}</strong>
+                  </div>
+                </Link>
               ))}
             </div>
           ) : <p>아직 뽑은 상품 이력이 없습니다.</p>
         )}
       </section>
+
+      {/* ③ 새로운 “내 토큰 게이팅 NFT” 섹션
+      <section style={{ marginTop: 40 }}>
+        <h3>내 토큰 게이팅 NFT</h3>
+        {myTokenIds.length
+          ? (
+            <div className="token-grid">
+              {myTokenIds.map(id => (
+                <Link 
+                  key={id} 
+                  to={`/access/${id}`} 
+                  className="token-card"
+                >
+                  <div className="token-card-img">
+                    여기에 메타데이터에서 가져온 이미지가 있으면 넣고, 없으면 플레이스홀더
+                    <img src={`/images/placeholder.png`} alt={`NFT #${id}`} />
+                  </div>
+                  <div className="token-card-body">
+                    <p>NFT #{id}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )
+          : <p>아직 토큰 게이팅 NFT가 없습니다.</p>
+        }
+      </section>   */}
+
     </div>
   );
 };

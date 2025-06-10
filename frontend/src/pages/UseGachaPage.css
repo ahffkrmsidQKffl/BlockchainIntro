@@ -63,8 +63,15 @@
 }
 
 .contract-items-grid {
-  display: grid;
+  /* display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem; */
+  display: grid;
+  /* 250px 고정 폭 칼럼을 가능한 만큼 만들고, */
+  grid-template-columns: repeat(auto-fit, 250px);
+  /* 남는 공간은 양쪽에 균등 배치(가운데 정렬) */
+  justify-content: center;
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
