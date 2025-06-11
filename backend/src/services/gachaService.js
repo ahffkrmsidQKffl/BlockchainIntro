@@ -138,7 +138,7 @@ exports.createGachaContract = async (userId, itemIds, userWalletAddress) => {
 exports.processDrawResult = async ({ userId, contractAddress, tokenId }) => {
 
   // 1. NFT 한 건 찾기
-  const nft = await nftRepo.findNFT({ contractAddress, tokenId, userId });
+  const nft = await nftRepo.findNFT({ contractAddress, tokenId });
   if (!nft) throw new Error('해당 NFT를 찾을 수 없습니다.');
 
   // 2. 히스토리 저장
