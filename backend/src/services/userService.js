@@ -18,5 +18,5 @@ exports.loginUser = async ({ email, password }) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error('비밀번호가 틀렸습니다.');
 
-  return jwt.generateToken({ id: user.id, email: user.email });
+  return jwt.generateToken({ id: user.id, email: user.email, nickname: user.nickname });
 };

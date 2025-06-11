@@ -102,7 +102,7 @@ const MyPage = () => {
       <h2>마이페이지</h2>
 
       <section style={{ marginTop: '30px' }}>
-        <h3>내가 만든 가챠 컨트랙트</h3>
+        <h3>내가 만든 랜덤박스</h3>
         {loading.items && <p>로딩 중...</p>}
         {error.items && <p style={{ color: 'red' }}>{error.items}</p>}
         {!loading.items && !error.items && (

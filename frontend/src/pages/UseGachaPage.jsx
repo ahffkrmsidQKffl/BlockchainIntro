@@ -125,7 +125,7 @@ const UseGachaPage = () => {
 
   return (
     <div className="use-gacha-container">
-      <h2>가챠 컨트랙트 목록</h2>
+      <h2>랜덤박스 컨트랙트 목록</h2>
 
       {contracts.map(contract => (
         <div key={contract.contractAddress} className="gacha-contract-box">
