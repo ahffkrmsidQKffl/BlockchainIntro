@@ -47,7 +47,7 @@ const UploadContractPage = () => {
   const handleRegisterSingleItem = async (itemIndex) => {
     const itemToRegister = nftItems[itemIndex];
     if (!itemToRegister.name || !itemToRegister.imageFile) {
-      alert('상품 이름과 이미지를 모두 선택해주세요.');
+      alert('아이템 이름과 이미지를 모두 선택해주세요.');
       return;
     }
     setLoading(true);
@@ -92,13 +92,13 @@ const UploadContractPage = () => {
       };
       setNftItems(updatedItems);
 
-      setItemRegistrationMessage(`'${itemToRegister.name}' 상품 등록 성공! (ID: ${itemIdFromServer})`); // API 응답 형식에 따라
+      setItemRegistrationMessage(`'${itemToRegister.name}' 아이템 등록 성공! (ID: ${itemIdFromServer})`); // API 응답 형식에 따라
       // 등록 성공 후, 해당 아이템은 목록에서 비활성화하거나 UI 변경 가능
     } 
     
     catch (error) {
-      console.error("상품 등록 실패:", error);
-      setItemRegistrationMessage(`상품 등록 실패: ${error.response?.data?.message || error.message}`);
+      console.error("아이템 등록 실패:", error);
+      setItemRegistrationMessage(`아이템 등록 실패: ${error.response?.data?.message || error.message}`);
     } 
     
     finally {
@@ -126,7 +126,7 @@ const UploadContractPage = () => {
     console.log("🔥 NFT Items 상태:", nftItems);
     console.log("🟢 등록된 itemIds:", itemIds);
     if (itemIds.length !== nftItems.length) {
-      alert("모든 상품을 먼저 등록해야 합니다.");
+      alert("모든 아이템을 먼저 등록해야 합니다.");
       return;
     }
 
@@ -139,27 +139,28 @@ const UploadContractPage = () => {
           Authorization: `Bearer ${token}`, },
         body: JSON.stringify({ itemIds, walletAddress }) // userId는 백엔드에서 req.user.id 로 해결
       });
+
       const result = await response.json();
       if (response.ok) {
         alert(`✅ 컨트랙트 생성 성공!\n주소: ${result.contractAddress}`);
         // 2-1) 메타마스크에 NFT 자동 추가
-        // for (const tid of result.tokenIds) {
-        //   try {
-        //     await window.ethereum.request({
-        //       method: "wallet_watchAsset",
-        //       params: {
-        //         type: "ERC721",
-        //         options: {
-        //           address: result.nftAddress,   // 0xD647…
-        //           tokenId: tid.toString(),
-        //         },
-        //       },
-        //     });
-        //     console.log(`NFT #${tid} 추가 완료`);
-        //   } catch (e) {
-        //     console.warn(`NFT #${tid} 추가 취소/실패`, e);
-        //   }
-        // }
+        for (const tid of result.tokenIds) {
+          try {
+            await window.ethereum.request({
+              method: "wallet_watchAsset",
+              params: {
+                type: "ERC721",
+                options: {
+                  address: result.nftAddress,   // 0xD647…
+                  tokenId: tid.toString(),
+                },
+              },
+            });
+            console.log(`NFT #${tid} 추가 완료`);
+          } catch (e) {
+            console.warn(`NFT #${tid} 추가 취소/실패`, e);
+          }
+        }
       } else {
         throw new Error(result.message || "컨트랙트 생성 실패");
       }
@@ -175,19 +176,19 @@ const UploadContractPage = () => {
 
   return (
     <div className="upload-contract-container">
-      <h2>새로운 랜덤박스 상품 등록</h2>
+      <h2>새로운 애장품(가챠 아이템) 등록</h2>
       {itemRegistrationMessage && <p className={itemRegistrationMessage.includes('실패') ? 'error-message' : 'success-message'}>{itemRegistrationMessage}</p>}
 
       <form onSubmit={handleSubmitContract}>
-        <h3>등록할 상품 목록</h3>
+        <h3>등록할 애장품 목록</h3>
         {nftItems.map((item, index) => (
           <div key={index} className="nft-item-card">
             <h4>품목 {index + 1}</h4>
-            <label htmlFor={`item-name-${index}`}>상품 이름:</label>
-            <input id={`item-name-${index}`} type="text" value={item.name} onChange={(e) => handleItemChange(index, 'name', e.target.value)} placeholder="예: 포켓몬 카드" required />
+            <label htmlFor={`item-name-${index}`}>아이템 이름:</label>
+            <input id={`item-name-${index}`} type="text" value={item.name} onChange={(e) => handleItemChange(index, 'name', e.target.value)} placeholder="예: 전설의 검" required />
             
-            <label htmlFor={`item-desc-${index}`}>상품 설명:</label>
-            <textarea id={`item-desc-${index}`} value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} placeholder="상품에 대한 설명"></textarea>
+            <label htmlFor={`item-desc-${index}`}>아이템 설명:</label>
+            <textarea id={`item-desc-${index}`} value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} placeholder="아이템에 대한 설명"></textarea>
 
             <label htmlFor={`item-img-${index}`}>이미지 업로드:</label>
             <input id={`item-img-${index}`} type="file" onChange={(e) => handleImageChange(index, e.target.files[0])} accept="image/*" />
@@ -201,7 +202,7 @@ const UploadContractPage = () => {
             <div className="button-group">
                 <button type="button" onClick={() => handleRegisterSingleItem(index)} disabled={loading || item.imageUrl} className="button-primary">
                     {loading && '처리중...'}
-                    {!loading && (item.imageUrl ? '등록 완료' : '이 상품 서버에 등록')}
+                    {!loading && (item.imageUrl ? '등록 완료' : '이 아이템 서버에 등록')}
                 </button>
                 <button type="button" onClick={() => handleRemoveItem(index)} className="remove-item-button">품목 삭제</button>
             </div>
@@ -211,7 +212,7 @@ const UploadContractPage = () => {
 
         <div className="submit-button-container">
           <h4>(예시) 스마트 컨트랙트 생성</h4>
-          <p>모든 상품을 위에서 개별적으로 등록 후, 해당 상품들로 컨트랙트를 생성할 수 있습니다.</p>
+          <p>모든 아이템을 위에서 개별적으로 등록 후, 해당 아이템들로 컨트랙트를 생성할 수 있습니다.</p>
           <button type="submit" className="button-primary" disabled={loading}>
             컨트랙트 생성 요청
           </button>

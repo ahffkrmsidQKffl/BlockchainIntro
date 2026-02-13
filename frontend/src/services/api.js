@@ -39,30 +39,20 @@ export const uploadImage = (formData) => apiClient.post('/upload', formData, {
 export const getAllItems = () => apiClient.get('/items');
 export const registerItem = (itemData) => apiClient.post('/items', itemData);
 export const getMyRegisteredItems = () => apiClient.get('/items/my');
-export const getMyGachaContracts = () => apiClient.get('/items/my-gacha-contracts');
 
 // Gacha (가챠)
 export const drawGacha = (gachaData) => apiClient.post('/gacha/draw', gachaData);
 export const getMyGachaHistory = () => apiClient.get('/gacha/history'); // 500 에러가 발생하는 API
 export const getAllGachaContracts = () => apiClient.get('/gacha/contracts');
 export const sendGachaResultToBackend = (contractAddress, tokenId) =>
-  apiClient.post('/gacha/result', { contractAddress, tokenId });
-export const pickNextGachaItem = () => apiClient.get('/gacha/pick-next');
+  axios.post('/api/gacha/result', { contractAddress, tokenId });
 
 // Shipping & Delivery (배송)
-export function printWaybill(waybillNo) { return apiClient.post('/printwbl', { waybillNo }, { responseType:'arraybuffer' }); }
-
-// GET 배송 정보
-export function getShippingInfo(infoId, tokenId) {
-  return apiClient.get(`/shipping/info/${infoId}`, {
-    params: { tokenId }
-  });
-}
-
-// POST 배송 확정
-export function confirmShippingInfo(infoId, data) {
-  return apiClient.post(`/shipping/info/${infoId}/confirm`, data);
-}
+export const submitShippingAddress = (shippingData) => apiClient.post('/shippings/address', shippingData);
+export const registerTrackingInfo = (deliveryData) => apiClient.post('/delivery/shipping', deliveryData);
+export const uploadDeliveryProof = (proofData) => apiClient.post('/delivery/proof', proofData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+});
 
 //NFT 
 export const getAllContractsWithNFTs = () => 

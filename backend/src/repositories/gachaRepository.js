@@ -72,8 +72,6 @@ exports.getGachaHistoryByUser = async (userId) => {
       SELECT 
         gh.id,
         gh.created_at AS drawDate, 
-        gh.token_id         AS tokenId,
-        gh.contract_address AS contractAddress,
         pi.id AS itemId, 
         pi.name AS itemName, 
         pi.description, 

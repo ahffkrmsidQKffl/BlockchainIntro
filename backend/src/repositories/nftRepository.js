@@ -31,11 +31,11 @@ exports.getAllContractsWithNFTItems = async () => {
 };
 
 /* 뽑힌 NFT 하나 가져오기 */
-exports.findNFT = async ({ contractAddress, tokenId }) => {
+exports.findNFT = async ({ contractAddress, tokenId, userId }) => {
   const [rows] = await db.query(
     `SELECT * FROM nfts
-     WHERE contract_address = ? AND token_id = ?`,
-    [contractAddress, tokenId]
+     WHERE contract_address = ? AND token_id = ? AND user_id = ?`,
+    [contractAddress, tokenId, userId]
   );
   return rows[0];
 };
@@ -51,7 +51,7 @@ exports.deleteNFT = async ({ contractAddress, tokenId }) => {
 /* gacha_contract_items 에서도 제거 */
 exports.deleteGachaContractItem = async ({ contractAddress, itemId }) => {
   await db.query(
-    'UPDATE gacha_contract_items SET used = 1 WHERE contract_address = ? AND item_id = ?',
+    'DELETE FROM gacha_contract_items WHERE contract_address = ? AND item_id = ?',
     [contractAddress, itemId]
   );
 };

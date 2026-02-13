@@ -73,6 +73,4 @@ router.post('/', authenticateToken, itemController.registerItem);
  */
 router.get('/my', authenticateToken, itemController.getMyItems);
 
-router.get('/my-gacha-contracts', authenticateToken, itemController.getMyGachaContracts);
-
 module.exports = router;

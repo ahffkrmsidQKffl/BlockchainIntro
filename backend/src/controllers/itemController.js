@@ -39,15 +39,3 @@ exports.getMyItems = async (req, res) => {
     res.status(400).json({ message: '아이템 목록을 가져오는 데 실패했습니다: ' + err.message });
   }
 };
-
-exports.getMyGachaContracts = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    console.log("🔍 [API] 내 가챠 컨트랙트 요청 userId:", userId);
-    const result = await itemService.getMyGachaContracts(userId);
-    res.status(200).json(result);
-  } catch (err) {
-    console.error('❌ 내 가챠 컨트랙트 조회 오류:', err.stack || err.message);
-    res.status(500).json({ message: '가챠 정보 조회 실패' });
-  }
-};

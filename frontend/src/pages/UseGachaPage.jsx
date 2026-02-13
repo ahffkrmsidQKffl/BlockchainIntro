@@ -2,12 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import ContractCard from '../components/ContractCard'; // 가챠 아이템을 표시할 카드 컴포넌트
-import GachaResultModal from '../components/GachaResultModal'; // 결과 화면
 import { useAuth } from '../contexts/AuthContext';
 import { getAllContractsWithNFTs, drawGacha, sendGachaResultToBackend } from '../services/api'; 
 import { ethers } from "ethers";
 import GachaContractArtifact  from "../../../solidity/build/contracts/GachaContract.json";
-import GachaNFTArtifact       from "../../../solidity/build/contracts/GachaNFT.json";
 import './UseGachaPage.css';
 
 const UseGachaPage = () => {
@@ -15,7 +13,6 @@ const UseGachaPage = () => {
   const [loading, setLoading] = useState(true);
   const [isDrawing, setIsDrawing] = useState(false); // 뽑기 동작 중 로딩 상태
   const [contracts, setContracts] = useState([]);
-  const [modalResult, setModalResult]   = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,7 +20,6 @@ const UseGachaPage = () => {
         const res = await getAllContractsWithNFTs();
         const grouped = groupByContract(res.data);
         setContracts(grouped);
-        console.log("📦 서버 응답 데이터:", res.data);
       } catch (error) {
         console.error("가챠 컨트랙트 목록 로딩 실패:", error);
       } finally {
@@ -47,9 +43,8 @@ const UseGachaPage = () => {
         }
         map[addr].items.push({
           id: row.nftId,
-          tokenId: row.token_id,
-          metadataUri: row.metadata_uri,
-          description: row.description || ''
+          tokenId: row.tokenId,
+          metadataUri: row.metadata_uri
         });
       });
       return Object.values(map);
@@ -71,43 +66,23 @@ const UseGachaPage = () => {
       const tx = await contract.draw(); // draw() 실행
       const receipt = await tx.wait();
 
-      // --- NFT 전용 인터페이스로 Transfer 이벤트만 골라 파싱 ---
-      const nftInterface = new ethers.Interface(GachaNFTArtifact.abi);
-      // 배포할 때 받은 NFT 컨트랙트 주소를 환경변수 등에서 가져오세요.
-      const nftAddress   = "0xD647245c2f45b20b98cb39A3e445f6fA90D3A62c"; // ✅ 실제 gachaNFT 배포 주소 입력
-      
-      const transferLog = receipt.logs.find(log =>
-        log.address.toLowerCase() === nftAddress.toLowerCase()
-      );
-      if (!transferLog) {
-        throw new Error("NFT Transfer 이벤트를 찾을 수 없습니다.");
-      }
-      const parsed = nftInterface.parseLog(transferLog);
+      // Transfer 이벤트에서 tokenId 파싱
+      const transferEvent = receipt.logs.find(log => {
+        try {
+          return contract.interface.parseLog(log).name === "Transfer";
+        } catch (_) {
+          return false;
+        }
+      });
+
+      const parsed = contract.interface.parseLog(transferEvent);
       const tokenId = parsed.args.tokenId.toString();
+
       alert(`🎉 NFT ${tokenId} 뽑기 성공!`);
 
-      // 1) 백엔드로 결과 전송
+      // 백엔드로 결과 전송
       // sendGachaResultToBackend 응답에 result.{itemId, metadataUri}
       const { data } = await sendGachaResultToBackend(contractAddress, tokenId);
-
-      /* 2) MetaMask 지갑에 NFT 팝업 추가 -------------------- */
-      // try {
-      //   await window.ethereum.request({
-      //     method: "wallet_watchAsset",
-      //     params: {
-      //       type: "ERC721",
-      //       options: {
-      //         address: nftAddress,
-      //         tokenId: tokenId
-      //       }
-      //     }
-      //   });
-      //   console.log(`NFT #${tokenId} 추가 요청 완료`);
-      // } catch (e) {
-      //   console.warn("사용자가 NFT 추가를 취소했습니다.", e);
-      // }
-
-      // 3) 모달에 뽑기 결과 표시
       setModalResult({
         id: data.result.itemId,
         name: `NFT #${tokenId}`,
@@ -125,7 +100,7 @@ const UseGachaPage = () => {
 
   return (
     <div className="use-gacha-container">
-      <h2>랜덤박스 컨트랙트 목록</h2>
+      <h2>가챠 컨트랙트 목록</h2>
 
       {contracts.map(contract => (
         <div key={contract.contractAddress} className="gacha-contract-box">
@@ -137,8 +112,7 @@ const UseGachaPage = () => {
               <ContractCard key={item.tokenId} item={{
                   id: item.id,
                   name: `NFT #${item.tokenId}`,
-                  image_url: item.metadataUri,
-                  description: item.description || '이 아이템에 대한 설명이 없습니다.'
+                  image_url: item.metadataUri
                 }} />
             ))}
           </div>
@@ -148,15 +122,6 @@ const UseGachaPage = () => {
           </button>
         </div>
       ))}
-      {/* {modalResult && (
-        <GachaResultModal
-          title={modalResult.name}
-          imageUrl={modalResult.imageUrl}
-          onClose={() => setModalResult(null)}
-        >
-        배송 정보 등록 등 추가 UI 
-        </GachaResultModal>
-      )} */}
     </div>
   );
 };

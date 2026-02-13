@@ -1,4 +1,3 @@
-const { generateMetadata } = require('../utils/metadata');
 const gachaRepo = require('../repositories/gachaRepository');
 const nftRepo = require('../repositories/nftRepository');
 
@@ -39,106 +38,90 @@ exports.createGachaContract = async (userId, itemIds, userWalletAddress) => {
   console.log("User wallet address:", userWalletAddress);
   
 
-  // 1. NFT 컨트랙트 owner 주소 불러오기
-  const accounts      = await web3.eth.getAccounts();
-  const adminAddress  = accounts[0];
-  const matched       = accounts.find(a => a.toLowerCase() === userWalletAddress.toLowerCase());
-  if (!matched) throw new Error('유저 지갑이 Ganache 계정에 없습니다.');
+  // ✅ 1. NFT 컨트랙트 owner 주소 불러오기
+  const accounts = await web3.eth.getAccounts();
+  const adminAddress = accounts[0];
+  console.log("adminAddress:", adminAddress);
 
-  /* ───────── 2. GachaContract 배포 (tokenIds는 나중에 세팅) ───────── */
-  const contract = await new web3.eth.Contract(GachaContractArtifact.abi)
-  .deploy({ data: GachaContractArtifact.bytecode, arguments: [nftAddress, []] })
-  .send({ from: matched, gas: 5_000_000 });
+  const realOwner = await GachaNFT.methods.owner().call();
+  console.log("🧾 GachaNFT owner:", realOwner);
 
-  const gachaAddr = contract.options.address;   // 주소 확보
+  const matchedAddress = accounts.find(acc => acc.toLowerCase() === userWalletAddress.toLowerCase());
 
-  // 3. DB에서 품목 정보 조회 + “토큰 게이팅용 external_url” 박아가며 민팅
-  const items          = await gachaRepo.getItemsByIds(itemIds);
+  if (!matchedAddress) {
+    throw new Error("❌ 유저 지갑 주소가 Ganache 계정 목록에 없습니다.");
+  }
+
+  // ✅ DB에서 아이템 정보 불러오기 및 민팅
+  const items = await gachaRepo.getItemsByIds(itemIds); // name, image_url 포함되어 있어야 함
   const mintedTokenIds = [];
 
   for (const item of items) {
-    // 3-1) 다음에 발행될 tokenId 예측 (supply + 1)
-    const nextTokenIdStr = await GachaNFT.methods.nextTokenId().call();
-    const nextTokenId    = Number(nextTokenIdStr);
+    const mintTx = await GachaNFT.methods.mint(matchedAddress, item.image_url).send({
+      from: adminAddress,
+      gas: 300000
+    });
 
-    // 3-2) 메타데이터 생성 시 external_url 포함
-    const rawMeta = {
-      name:        item.name,
-      description: item.description,
-      image:       item.image_url,
-      external_url:`${process.env.FRONTEND_BASE_URL}/access/${nextTokenId}`
-    };
-    // (uploadMetadata는 IPFS나 여러분 서버에 JSON을 올려주는 유틸)
-    const metadataUrl = await generateMetadata(item);
-
-    // 3-3) mint 호출
-    const tx = await GachaNFT.methods
-      .mint(gachaAddr, metadataUrl)
-      .send({ from: adminAddress, gas: 1_000_000 });
-
-    const tokenId = Number(tx.events.Transfer.returnValues.tokenId);
-    mintedTokenIds.push({ tokenId, item });
+    const tokenId = mintTx.events.Transfer.returnValues.tokenId;
+    mintedTokenIds.push({tokenId: parseInt(tokenId), item});
   }
 
-  // /* ───────── 4. 컨트랙트에 tokenIds 배열 세팅 ─────────
-  //    Solidity 쪽에 다음 함수가 있어야 합니다.
-  //      function setTokenIds(uint256[] memory _ids) external {
-  //        require(tokenIds.length == 0, "already set");
-  //        tokenIds = _ids;
-  //      }
-  // */
+  // ✅ GachaContract 배포
+  const deployTx = GachaContract.deploy({
+    data: GachaContractArtifact.bytecode,
+    arguments: [nftAddress, mintedTokenIds.map(t => t.tokenId)]
+  });
 
-  // ② tokenIds 주입
-  await contract.methods
-    .setTokenIds(mintedTokenIds.map(t => t.tokenId))
-    .send({ from: matched, gas : 500_000 });
+  const contractInstance = await deployTx.send({
+    from: matchedAddress,
+    gas: 5000000
+  });
 
-  /* ───────── 5. DB 저장 ───────── */
+  const address = contractInstance.options.address;
+
+  // 여기서 NFT DB 저장
   for (const { tokenId, item } of mintedTokenIds) {
     await nftRepo.saveNFT({
       userId,
-      itemId:          item.id,
+      itemId: item.id,
       tokenId,
-      metadataUri:     item.image_url,
-      contractAddress: gachaAddr          // ★ NFT 컨트랙트 주소
+      metadataUri: item.image_url,
+      contractAddress: address
     });
   }
 
-  await gachaRepo.saveGachaContract({
-    userId,
-    contractAddress: gachaAddr,            // 가챠 컨트랙트 주소
-    itemIds: items.map(i => i.id)
-  });
+  const dbItemIds = items.map(i => i.id);   // physical_items.id 배열
+
+  await gachaRepo.saveGachaContract({ userId, contractAddress: address, itemIds: dbItemIds });
 
   return { 
-    contractAddress: gachaAddr,
+    contractAddress: address,
     nftAddress,
     tokenIds: mintedTokenIds.map(t => t.tokenId)   //  [12, 13, …]
   };
 };
 
-// exports.drawItem = async (userId) => {
-//   const availableItems = await gachaRepo.getAvailableItems();
-//   if (availableItems.length === 0) {
-//     throw new Error('가챠 가능한 상품이 없습니다.');
-//   }
+exports.drawItem = async (userId) => {
+  const availableItems = await gachaRepo.getAvailableItems();
+  if (availableItems.length === 0) {
+    throw new Error('가챠 가능한 상품이 없습니다.');
+  }
 
-//   const randomIndex = Math.floor(Math.random() * availableItems.length);
-//   const selectedItem = availableItems[randomIndex];
+  const randomIndex = Math.floor(Math.random() * availableItems.length);
+  const selectedItem = availableItems[randomIndex];
 
-//   // 가챠 결과 저장
-//   await gachaRepo.saveGachaResult(userId, selectedItem.id);
+  // 가챠 결과 저장
+  await gachaRepo.saveGachaResult(userId, selectedItem.id);
 
-//   // 해당 아이템을 더 이상 뽑히지 않도록 처리
-//   await gachaRepo.markItemUnavailable(selectedItem.id);
+  // 해당 아이템을 더 이상 뽑히지 않도록 처리
+  await gachaRepo.markItemUnavailable(selectedItem.id);
 
-//   return selectedItem;
-// };
+  return selectedItem;
+};
 
 exports.processDrawResult = async ({ userId, contractAddress, tokenId }) => {
-
   // 1. NFT 한 건 찾기
-  const nft = await nftRepo.findNFT({ contractAddress, tokenId });
+  const nft = await nftRepo.findNFT({ contractAddress, tokenId, userId });
   if (!nft) throw new Error('해당 NFT를 찾을 수 없습니다.');
 
   // 2. 히스토리 저장

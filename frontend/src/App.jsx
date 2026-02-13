@@ -12,8 +12,7 @@ import GachaResultModal from './components/GachaResultModal'; // 필요시 App �
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import MyPage from './pages/MyPage';
-import ShippingInfoPage from './pages/ShippingInfoPage';
-import AccessPage        from './pages/AccessPage';
+import ShippingAddressPage from './pages/ShippingAddressPage'; // 추가
 
 import './App.css';
 
@@ -85,11 +84,8 @@ function App() {
           <Route path="/mypage" element={
             <ProtectedRoute><MyPage /></ProtectedRoute>
           } />
-          <Route path="/shipping" element={ 
-            <ProtectedRoute><ShippingInfoPage /></ProtectedRoute>
-          } />
-          <Route path="/access/:tokenId" element={ 
-            <ProtectedRoute><AccessPage /></ProtectedRoute>
+          <Route path="/shipping/:itemId" element={ // itemId를 URL 파라미터로 전달
+            <ProtectedRoute><ShippingAddressPage /></ProtectedRoute>
           } />
           {/* 기타 라우트들 */}
         </Routes>

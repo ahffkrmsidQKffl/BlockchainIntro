@@ -346,13 +346,13 @@
     "absolutePath": "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
     "exportedSymbols": {
       "Address": [
-        1682
+        1655
       ],
       "Context": [
-        1704
+        1677
       ],
       "ERC165": [
-        1903
+        1876
       ],
       "ERC721": [
         1039
@@ -361,7 +361,7 @@
         1298
       ],
       "IERC165": [
-        1915
+        1888
       ],
       "IERC721": [
         1155
@@ -373,10 +373,10 @@
         1173
       ],
       "Math": [
-        2780
+        2753
       ],
       "Strings": [
-        1879
+        1852
       ]
     },
     "id": 1299,
@@ -438,9 +438,9 @@
           1039,
           1325,
           1155,
-          1903,
-          1915,
-          1704
+          1876,
+          1888,
+          1677
         ],
         "name": "ERC721URIStorage",
         "nameLocation": "266:16:4",
@@ -453,7 +453,7 @@
               "id": 1180,
               "name": "Strings",
               "nodeType": "IdentifierPath",
-              "referencedDeclaration": 1879,
+              "referencedDeclaration": 1852,
               "src": "305:7:4"
             },
             "nodeType": "UsingForDirective",
@@ -1891,7 +1891,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-06-09T21:12:01.360Z",
+  "updatedAt": "2025-06-09T02:47:48.567Z",
   "devdoc": {
     "details": "ERC721 token with storage based token URI management.",
     "kind": "dev",
